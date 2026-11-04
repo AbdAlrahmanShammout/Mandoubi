@@ -5,6 +5,7 @@ import { resolvePrismaClient } from '@/providers/database/prisma/prisma-client.r
 import { PrismaProviderService } from '@/providers/database/prisma/prisma-provider.service';
 import { CreateInvoiceRepoInput, PreparedInvoiceItem } from '@/modules/invoice/defs/invoice-repository.defs';
 import { InvoiceEntity } from '@/modules/invoice/entity/invoice.entity';
+import { InvoiceStatus } from '@/modules/invoice/enum/invoice-status.enum';
 import { InvoiceMapper } from '@/modules/invoice/mapper/invoice.mapper';
 import { InvoiceRepository, RejectInvoiceRepoInput } from '@/modules/invoice/repository/invoice.repository';
 import { invoiceDetailsInclude } from '@/modules/invoice/types/invoice-details.include';
@@ -49,6 +50,18 @@ export class InvoicePrismaRepository extends InvoiceRepository {
       where: { id: input.id, status: 'PENDING' },
       data: { status: 'REJECTED', rejectionReasonId: input.rejectionReasonId, customReason: input.customReason },
     });
+    return updated.count === 1;
+  }
+  /** Assigns an approved invoice without choosing the driver. */
+  async markAssigned(id: number, context: TransactionContext): Promise<boolean> {
+    const client = resolvePrismaClient(this.prisma, context);
+    const updated = await client.invoice.updateMany({ where: { id, status: 'APPROVED' }, data: { status: 'ASSIGNED' } });
+    return updated.count === 1;
+  }
+  /** Records a delivery result on an assigned invoice. */
+  async markDelivered(id: number, status: InvoiceStatus, context: TransactionContext): Promise<boolean> {
+    const client = resolvePrismaClient(this.prisma, context);
+    const updated = await client.invoice.updateMany({ where: { id, status: 'ASSIGNED' }, data: { status } });
     return updated.count === 1;
   }
 }

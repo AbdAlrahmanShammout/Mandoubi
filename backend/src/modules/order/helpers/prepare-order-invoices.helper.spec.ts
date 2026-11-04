@@ -50,6 +50,9 @@ describe('Order split', () => {
     expect(deriveOrderStatus([InvoiceStatus.APPROVED, InvoiceStatus.APPROVED])).toBe(OrderStatus.APPROVED);
     expect(deriveOrderStatus([InvoiceStatus.APPROVED, InvoiceStatus.REJECTED])).toBe(OrderStatus.PARTIALLY_APPROVED);
     expect(deriveOrderStatus([InvoiceStatus.REJECTED, InvoiceStatus.REJECTED])).toBe(OrderStatus.COMPLETED);
+    expect(deriveOrderStatus([InvoiceStatus.ASSIGNED, InvoiceStatus.APPROVED])).toBe(OrderStatus.PARTIALLY_DELIVERED);
+    expect(deriveOrderStatus([InvoiceStatus.DELIVERED_PAID, InvoiceStatus.REJECTED])).toBe(OrderStatus.COMPLETED);
+    expect(deriveOrderStatus([InvoiceStatus.NOT_DELIVERED])).toBe(OrderStatus.PARTIALLY_DELIVERED);
   });
 });
 

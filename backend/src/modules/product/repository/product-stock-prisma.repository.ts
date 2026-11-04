@@ -94,4 +94,19 @@ export class ProductStockPrismaRepository extends ProductStockRepository {
     `;
     return updated === 1;
   }
+  /** Issues reserved quantity from the warehouse stored on the invoice. */
+  async issue(input: ReserveProductStockRepoInput, context?: TransactionContext): Promise<boolean> {
+    const client = resolvePrismaClient(this.prisma, context);
+    const updated = await client.$executeRaw`
+      UPDATE "product_stocks"
+      SET "quantity" = "quantity" - ${input.quantity},
+          "reserved_quantity" = "reserved_quantity" - ${input.quantity},
+          "updated_at" = CURRENT_TIMESTAMP
+      WHERE "product_id" = ${input.productId}
+        AND "warehouse_id" = ${input.warehouseId}
+        AND "reserved_quantity" >= ${input.quantity}
+        AND "quantity" >= ${input.quantity}
+    `;
+    return updated === 1;
+  }
 }

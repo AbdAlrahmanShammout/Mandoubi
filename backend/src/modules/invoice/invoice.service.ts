@@ -6,6 +6,7 @@ import { ResourceNotFoundException } from '@/common/exceptions/resource-not-foun
 import { CreateInvoiceRepoInput } from '@/modules/invoice/defs/invoice-repository.defs';
 import { InvoiceEntity } from '@/modules/invoice/entity/invoice.entity';
 import { InvoiceItemEntity } from '@/modules/invoice/entity/invoice-item.entity';
+import { InvoiceStatus } from '@/modules/invoice/enum/invoice-status.enum';
 import { InvoiceRepository } from '@/modules/invoice/repository/invoice.repository';
 import { ProductService } from '@/modules/product/product.service';
 import { RejectionReasonService } from '@/modules/rejection-reason/rejection-reason.service';
@@ -73,6 +74,27 @@ export class InvoiceService {
       }
       return this.requireInvoice(id, context);
     });
+  }
+  /**
+   * Moves an approved invoice to assigned inside the caller's transaction.
+   */
+  async markAssigned(id: number, context: TransactionContext): Promise<void> {
+    const assigned = await this.invoiceRepository.markAssigned(id, context);
+    if (!assigned) {
+      await this.requireInvoice(id, context);
+      throw new InvalidStateException({ message: 'Only an approved invoice can be assigned', code: 'INVOICE_NOT_APPROVED' });
+    }
+  }
+  /**
+   * Moves an assigned invoice to the recorded delivery result and returns its lines.
+   */
+  async markDelivered(id: number, status: InvoiceStatus, context: TransactionContext): Promise<InvoiceEntity> {
+    const delivered = await this.invoiceRepository.markDelivered(id, status, context);
+    const invoice = await this.requireInvoice(id, context);
+    if (!delivered) {
+      throw new InvalidStateException({ message: 'Only an assigned invoice can record a delivery result', code: 'INVOICE_NOT_ASSIGNED' });
+    }
+    return invoice;
   }
   private async readReasonId(rejectionReasonId?: number): Promise<number | null> {
     if (rejectionReasonId === undefined) {

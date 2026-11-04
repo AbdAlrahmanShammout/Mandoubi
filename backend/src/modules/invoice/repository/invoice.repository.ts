@@ -1,6 +1,7 @@
 import { TransactionContext } from '@/common/base/transaction-context';
 import { CreateInvoiceRepoInput } from '@/modules/invoice/defs/invoice-repository.defs';
 import { InvoiceEntity } from '@/modules/invoice/entity/invoice.entity';
+import { InvoiceStatus } from '@/modules/invoice/enum/invoice-status.enum';
 
 /**
  * Optional note stored when an invoice is rejected.
@@ -23,4 +24,8 @@ export abstract class InvoiceRepository {
   abstract markApproved(id: number, context: TransactionContext): Promise<boolean>;
   /** Moves a pending invoice to rejected. Returns false when it is not pending. */
   abstract markRejected(input: RejectInvoiceRepoInput, context: TransactionContext): Promise<boolean>;
+  /** Moves an approved invoice to assigned. Returns false when it is not approved. */
+  abstract markAssigned(id: number, context: TransactionContext): Promise<boolean>;
+  /** Moves an assigned invoice to a delivery result. Returns false when it is not assigned. */
+  abstract markDelivered(id: number, status: InvoiceStatus, context: TransactionContext): Promise<boolean>;
 }

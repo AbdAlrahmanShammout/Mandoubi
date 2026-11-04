@@ -54,8 +54,9 @@ model Driver {
   status       AccountStatus @default(ACTIVE)
   createdAt    DateTime      @default(now()) @map("created_at")
   updatedAt    DateTime      @updatedAt @map("updated_at")
-  deletedAt    DateTime?     @map("deleted_at")
+  deletedAt    DateTime?            @map("deleted_at")
   user         User?
+  assignments  DeliveryAssignment[]
 
   @@map("drivers")
 }
@@ -68,8 +69,9 @@ model User {
   status       AccountStatus @default(ACTIVE)
   pharmacyId   Int?          @unique @map("pharmacy_id")
   driverId     Int?          @unique @map("driver_id")
-  pharmacy     Pharmacy?     @relation(fields: [pharmacyId], references: [id])
-  driver       Driver?       @relation(fields: [driverId], references: [id])
+  pharmacy             Pharmacy?            @relation(fields: [pharmacyId], references: [id])
+  driver               Driver?              @relation(fields: [driverId], references: [id])
+  deliveryAssignments  DeliveryAssignment[]
   createdAt    DateTime      @default(now()) @map("created_at")
   updatedAt    DateTime      @updatedAt @map("updated_at")
   deletedAt    DateTime?     @map("deleted_at")
@@ -197,6 +199,21 @@ enum InvoiceStatus {
   PENDING
   APPROVED
   REJECTED
+  ASSIGNED
+  DELIVERED_PAID
+  DELIVERED_UNPAID
+  NOT_DELIVERED
+}
+
+enum DeliveryResult {
+  DELIVERED_PAID
+  DELIVERED_UNPAID
+  NOT_DELIVERED
+}
+
+enum NonDeliveryReason {
+  PHARMACY_CLOSED
+  PAYMENT_UNAVAILABLE
 }
 
 model Order {
@@ -230,8 +247,9 @@ model Invoice {
   status             InvoiceStatus    @default(PENDING)
   rejectionReasonId  Int?             @map("rejection_reason_id")
   rejectionReason    RejectionReason? @relation(fields: [rejectionReasonId], references: [id], onDelete: Restrict)
-  customReason       String?          @map("custom_reason") @db.VarChar(500)
+  customReason       String?              @map("custom_reason") @db.VarChar(500)
   items              InvoiceItem[]
+  assignment         DeliveryAssignment?
   createdAt          DateTime         @default(now()) @map("created_at")
   updatedAt          DateTime         @updatedAt @map("updated_at")
 
@@ -264,4 +282,40 @@ model InvoiceItem {
 
   @@index([invoiceId])
   @@map("invoice_items")
+}
+
+model DeliveryAssignment {
+  id               Int             @id @default(autoincrement())
+  invoiceId        Int             @unique @map("invoice_id")
+  invoice          Invoice         @relation(fields: [invoiceId], references: [id])
+  driverId         Int             @map("driver_id")
+  driver           Driver          @relation(fields: [driverId], references: [id])
+  assignedByUserId Int             @map("assigned_by_user_id")
+  assignedBy       User            @relation(fields: [assignedByUserId], references: [id])
+  events           DeliveryEvent[]
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+
+  @@index([driverId])
+  @@map("delivery_assignments")
+}
+
+/// Append-only. A later redelivery adds another row and does not change this one.
+model DeliveryEvent {
+  id                Int                @id @default(autoincrement())
+  assignmentId      Int                @map("assignment_id")
+  assignment        DeliveryAssignment @relation(fields: [assignmentId], references: [id])
+  invoiceId         Int                @map("invoice_id")
+  driverId          Int                @map("driver_id")
+  result            DeliveryResult
+  nonDeliveryReason NonDeliveryReason? @map("non_delivery_reason")
+  note              String?            @db.VarChar(500)
+  recipientName     String?            @map("recipient_name") @db.VarChar(120)
+  occurredAt        DateTime           @map("occurred_at")
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+
+  @@index([assignmentId])
+  @@index([invoiceId])
+  @@map("delivery_events")
 }

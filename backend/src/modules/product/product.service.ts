@@ -168,6 +168,15 @@ export class ProductService {
     }
   }
   /**
+   * Issues stock that was reserved for an invoice. Available quantity does not change.
+   */
+  async issueRecordedStock(input: { readonly productId: number; readonly warehouseId: number; readonly quantity: number }, context: TransactionContext): Promise<void> {
+    const issued = await this.productStockRepository.issue(input, context);
+    if (!issued) {
+      throw new InvalidStateException({ message: 'The reserved quantity is no longer on the recorded warehouse', code: 'RESERVED_STOCK_MISSING' });
+    }
+  }
+  /**
    * Moves the primary flag to a warehouse the product is already linked to.
    */
   async changePrimaryWarehouse(productId: number, warehouseId: number): Promise<ProductEntity> {

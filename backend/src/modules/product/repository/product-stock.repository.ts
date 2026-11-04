@@ -18,4 +18,6 @@ export abstract class ProductStockRepository {
   abstract listReservations(productId: number, context?: TransactionContext): Promise<ProductStockReservation[]>;
   /** Increases reserved quantity when the warehouse still has enough available stock. */
   abstract reserve(input: ReserveProductStockRepoInput, context?: TransactionContext): Promise<boolean>;
+  /** Turns reserved quantity into issued quantity. Available stock stays the same. */
+  abstract issue(input: ReserveProductStockRepoInput, context?: TransactionContext): Promise<boolean>;
 }

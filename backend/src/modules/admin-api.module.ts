@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { AdminAuthController } from '@/authentication/admin-auth.controller';
 import { AuthModule } from '@/authentication/auth.module';
 import { RolesGuard } from '@/common/guards/roles.guard';
+import { DeliveryAdminController } from '@/modules/delivery/delivery.admin.controller';
+import { DeliveryModule } from '@/modules/delivery/delivery.module';
 import { DriverAdminController } from '@/modules/driver/driver.admin.controller';
 import { DriverModule } from '@/modules/driver/driver.module';
 import { ExchangeRateAdminController } from '@/modules/exchange-rate/exchange-rate.admin.controller';
@@ -28,8 +30,8 @@ import { JwtProviderModule } from '@/providers/jwt/jwt-provider.module';
  * Registers every controller exposed to the admin dashboard.
  */
 @Module({
-  imports: [AuthModule, DriverModule, ExchangeRateModule, InvoiceModule, JwtProviderModule, ManufacturerModule, OrderModule, PharmacyModule, ProductModule, RejectionReasonModule, UserModule, WarehouseModule],
-  controllers: [AdminAuthController, DriverAdminController, ExchangeRateAdminController, InvoiceAdminController, ManufacturerAdminController, OrderAdminController, PharmacyAdminController, ProductAdminController, RejectionReasonAdminController, WarehouseAdminController],
+  imports: [AuthModule, DeliveryModule, DriverModule, ExchangeRateModule, InvoiceModule, JwtProviderModule, ManufacturerModule, OrderModule, PharmacyModule, ProductModule, RejectionReasonModule, UserModule, WarehouseModule],
+  controllers: [AdminAuthController, DeliveryAdminController, DriverAdminController, ExchangeRateAdminController, InvoiceAdminController, ManufacturerAdminController, OrderAdminController, PharmacyAdminController, ProductAdminController, RejectionReasonAdminController, WarehouseAdminController],
   providers: [JwtAuthGuard, RolesGuard],
 })
 export class AdminApiModule {}
