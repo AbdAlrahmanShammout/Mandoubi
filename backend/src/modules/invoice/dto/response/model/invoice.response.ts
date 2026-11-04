@@ -18,6 +18,12 @@ export class InvoiceResponse extends BaseModelResponse {
   readonly category: ProductCategory;
   @ApiProperty({ enum: InvoiceStatus, example: InvoiceStatus.PENDING })
   readonly status: InvoiceStatus;
+  @ApiProperty({ example: 1, nullable: true })
+  readonly rejectionReasonId: number | null;
+  @ApiProperty({ example: 'Product is out of stock', nullable: true })
+  readonly rejectionReasonLabel: string | null;
+  @ApiProperty({ example: 'The pharmacy asked for a later delivery', nullable: true })
+  readonly customReason: string | null;
   @ApiProperty({ type: MoneyTotalResponse, isArray: true })
   readonly totals: MoneyTotalResponse[];
   @ApiProperty({ type: InvoiceItemResponse, isArray: true })
@@ -28,6 +34,9 @@ export class InvoiceResponse extends BaseModelResponse {
     this.orderId = invoice.orderId;
     this.category = invoice.category;
     this.status = invoice.status;
+    this.rejectionReasonId = invoice.rejectionReasonId;
+    this.rejectionReasonLabel = invoice.rejectionReasonLabel;
+    this.customReason = invoice.customReason;
     this.items = items.map((item) => new InvoiceItemResponse(item));
     this.totals = invoiceTotals(items).map((total) => new MoneyTotalResponse(total));
   }

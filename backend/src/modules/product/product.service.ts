@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { TransactionContext } from '@/common/base/transaction-context';
 import { TransactionRunner } from '@/common/base/transaction-runner';
 import { InvalidStateException } from '@/common/exceptions/invalid-state.exception';
 import { ResourceNotFoundException } from '@/common/exceptions/resource-not-found.exception';
@@ -13,6 +14,7 @@ import { InvoiceCurrency } from '@/modules/product/enum/invoice-currency.enum';
 import { ProductAvailability } from '@/modules/product/enum/product-availability.enum';
 import { ProductStatus } from '@/modules/product/enum/product-status.enum';
 import { ProductStockSelection, assertOrderLimits, normalizeProductStocks } from '@/modules/product/helpers/normalize-product-stocks.helper';
+import { preserveReservedStock } from '@/modules/product/helpers/preserve-reserved-stock.helper';
 import { OfferSelection, resolveProductOffer } from '@/modules/product/helpers/product-offer.helper';
 import { calculateSypPrice } from '@/modules/product/helpers/syp-price.helper';
 import { ProductStockRepository } from '@/modules/product/repository/product-stock.repository';
@@ -136,7 +138,9 @@ export class ProductService {
     const stocks = normalizeProductStocks(selections);
     await this.assertWarehousesExist(stocks);
     await this.transactionRunner.run(async (context) => {
-      await this.productStockRepository.replaceForProduct({ productId, stocks }, context);
+      const current = await this.productStockRepository.listReservations(productId, context);
+      const preserved = preserveReservedStock(current, stocks);
+      await this.productStockRepository.replaceForProduct({ productId, stocks: preserved }, context);
     });
     return this.getProductById(productId);
   }
@@ -146,10 +150,22 @@ export class ProductService {
   async updateStockQuantity(productId: number, warehouseId: number, quantity: number): Promise<ProductEntity> {
     await this.getProductById(productId);
     const updated = await this.productStockRepository.updateQuantity({ productId, warehouseId, quantity });
-    if (!updated) {
+    if (updated === 'missing') {
       throw new ResourceNotFoundException('Product stock', `${productId}:${warehouseId}`);
     }
+    if (updated === 'locked') {
+      throw new InvalidStateException({ message: 'Physical quantity cannot fall below the reserved quantity', code: 'RESERVED_STOCK_LOCKED' });
+    }
     return this.getProductById(productId);
+  }
+  /**
+   * Reserves stock from the warehouse stored on an invoice. Physical quantity stays unchanged.
+   */
+  async reserveRecordedStock(input: { readonly productId: number; readonly warehouseId: number; readonly quantity: number }, context: TransactionContext): Promise<void> {
+    const reserved = await this.productStockRepository.reserve(input, context);
+    if (!reserved) {
+      throw new InvalidStateException({ message: 'The recorded primary warehouse does not have enough available quantity', code: 'INSUFFICIENT_STOCK' });
+    }
   }
   /**
    * Moves the primary flag to a warehouse the product is already linked to.

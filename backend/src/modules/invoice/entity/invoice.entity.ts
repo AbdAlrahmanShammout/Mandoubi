@@ -11,6 +11,9 @@ export class InvoiceEntity extends BaseEntity {
   orderId!: number;
   category!: ProductCategory;
   status!: InvoiceStatus;
+  rejectionReasonId!: number | null;
+  rejectionReasonLabel!: string | null;
+  customReason!: string | null;
   items?: InvoiceItemEntity[];
   constructor(data: InvoiceZodType) {
     super();

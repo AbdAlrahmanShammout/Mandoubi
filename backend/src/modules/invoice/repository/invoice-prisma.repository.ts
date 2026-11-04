@@ -6,7 +6,7 @@ import { PrismaProviderService } from '@/providers/database/prisma/prisma-provid
 import { CreateInvoiceRepoInput, PreparedInvoiceItem } from '@/modules/invoice/defs/invoice-repository.defs';
 import { InvoiceEntity } from '@/modules/invoice/entity/invoice.entity';
 import { InvoiceMapper } from '@/modules/invoice/mapper/invoice.mapper';
-import { InvoiceRepository } from '@/modules/invoice/repository/invoice.repository';
+import { InvoiceRepository, RejectInvoiceRepoInput } from '@/modules/invoice/repository/invoice.repository';
 import { invoiceDetailsInclude } from '@/modules/invoice/types/invoice-details.include';
 
 /**
@@ -30,10 +30,26 @@ export class InvoicePrismaRepository extends InvoiceRepository {
     });
     return InvoiceMapper.toEntity(result);
   }
-  /** Loads one invoice and its lines. */
-  async findById(id: number): Promise<InvoiceEntity | null> {
-    const result = await this.prisma.invoice.findUnique({ where: { id }, include: invoiceDetailsInclude });
+  /** Loads one invoice and its lines on the given transaction when one is open. */
+  async findById(id: number, context?: TransactionContext): Promise<InvoiceEntity | null> {
+    const client = resolvePrismaClient(this.prisma, context);
+    const result = await client.invoice.findUnique({ where: { id }, include: invoiceDetailsInclude });
     return result ? InvoiceMapper.toEntity(result) : null;
+  }
+  /** Approves a pending invoice without changing stock itself. */
+  async markApproved(id: number, context: TransactionContext): Promise<boolean> {
+    const client = resolvePrismaClient(this.prisma, context);
+    const updated = await client.invoice.updateMany({ where: { id, status: 'PENDING' }, data: { status: 'APPROVED' } });
+    return updated.count === 1;
+  }
+  /** Rejects a pending invoice and stores the optional reasons. */
+  async markRejected(input: RejectInvoiceRepoInput, context: TransactionContext): Promise<boolean> {
+    const client = resolvePrismaClient(this.prisma, context);
+    const updated = await client.invoice.updateMany({
+      where: { id: input.id, status: 'PENDING' },
+      data: { status: 'REJECTED', rejectionReasonId: input.rejectionReasonId, customReason: input.customReason },
+    });
+    return updated.count === 1;
   }
 }
 

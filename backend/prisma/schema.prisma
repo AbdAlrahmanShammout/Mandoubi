@@ -176,15 +176,17 @@ model Product {
 
 /// One primary warehouse per product is enforced by a partial unique index in the migration.
 model ProductStock {
-  id          Int       @id @default(autoincrement())
-  productId   Int       @map("product_id")
-  warehouseId Int       @map("warehouse_id")
-  quantity    Int
-  isPrimary   Boolean   @default(false) @map("is_primary")
-  product     Product   @relation(fields: [productId], references: [id])
-  warehouse   Warehouse @relation(fields: [warehouseId], references: [id])
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
+  id               Int       @id @default(autoincrement())
+  productId        Int       @map("product_id")
+  warehouseId      Int       @map("warehouse_id")
+  quantity         Int
+  /// Cannot exceed quantity. The check constraint lives in the reservation migration.
+  reservedQuantity Int       @default(0) @map("reserved_quantity")
+  isPrimary        Boolean   @default(false) @map("is_primary")
+  product          Product   @relation(fields: [productId], references: [id])
+  warehouse        Warehouse @relation(fields: [warehouseId], references: [id])
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
 
   @@unique([productId, warehouseId])
   @@index([warehouseId])
@@ -209,15 +211,29 @@ model Order {
   @@map("orders")
 }
 
+model RejectionReason {
+  id        Int          @id @default(autoincrement())
+  label     String       @unique
+  status    RecordStatus @default(ACTIVE)
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+  invoices  Invoice[]
+
+  @@map("rejection_reasons")
+}
+
 model Invoice {
-  id        Int             @id @default(autoincrement())
-  orderId   Int             @map("order_id")
-  order     Order           @relation(fields: [orderId], references: [id])
-  category  ProductCategory
-  status    InvoiceStatus   @default(PENDING)
-  items     InvoiceItem[]
-  createdAt DateTime        @default(now()) @map("created_at")
-  updatedAt DateTime        @updatedAt @map("updated_at")
+  id                 Int              @id @default(autoincrement())
+  orderId            Int              @map("order_id")
+  order              Order            @relation(fields: [orderId], references: [id])
+  category           ProductCategory
+  status             InvoiceStatus    @default(PENDING)
+  rejectionReasonId  Int?             @map("rejection_reason_id")
+  rejectionReason    RejectionReason? @relation(fields: [rejectionReasonId], references: [id], onDelete: Restrict)
+  customReason       String?          @map("custom_reason") @db.VarChar(500)
+  items              InvoiceItem[]
+  createdAt          DateTime         @default(now()) @map("created_at")
+  updatedAt          DateTime         @updatedAt @map("updated_at")
 
   @@index([orderId])
   @@map("invoices")

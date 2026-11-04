@@ -107,6 +107,6 @@ function toOrderableProduct(product: ProductEntity): OrderableProduct {
     offerStartsAt: product.offerStartsAt,
     offerEndsAt: product.offerEndsAt,
     primaryWarehouseId: primary.warehouseId,
-    availableQuantity: primary.quantity,
+    availableQuantity: primary.quantity - primary.reservedQuantity,
   };
 }

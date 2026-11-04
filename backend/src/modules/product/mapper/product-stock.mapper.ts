@@ -16,6 +16,7 @@ export class ProductStockMapper {
       productId: payload.productId,
       warehouseId: payload.warehouseId,
       quantity: payload.quantity,
+      reservedQuantity: payload.reservedQuantity,
       isPrimary: payload.isPrimary,
       createdAt: payload.createdAt,
       updatedAt: payload.updatedAt,

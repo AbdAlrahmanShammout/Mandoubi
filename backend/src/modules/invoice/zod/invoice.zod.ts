@@ -10,6 +10,8 @@ export const InvoiceZodSchema = BaseZodSchema.extend({
   orderId: z.number(),
   category: z.nativeEnum(ProductCategory),
   status: z.nativeEnum(InvoiceStatus),
+  rejectionReasonId: z.number().nullable(),
+  customReason: z.string().nullable(),
 });
 
 export type InvoiceZodType = z.infer<typeof InvoiceZodSchema>;

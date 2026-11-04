@@ -21,10 +21,13 @@ export class InvoiceMapper {
       orderId: payload.orderId,
       category: payload.category as ProductCategory,
       status: payload.status as InvoiceStatus,
+      rejectionReasonId: payload.rejectionReasonId,
+      customReason: payload.customReason,
       createdAt: payload.createdAt,
       updatedAt: payload.updatedAt,
       deletedAt: null,
     });
+    invoice.rejectionReasonLabel = payload.rejectionReason?.label ?? null;
     invoice.items = payload.items.map((item) => InvoiceItemMapper.toEntity(item));
     return invoice;
   }

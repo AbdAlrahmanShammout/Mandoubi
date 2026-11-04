@@ -8,6 +8,7 @@ export const ProductStockZodSchema = BaseZodSchema.omit({ deletedAt: true }).ext
   productId: z.number(),
   warehouseId: z.number(),
   quantity: z.number(),
+  reservedQuantity: z.number(),
   isPrimary: z.boolean(),
 });
 

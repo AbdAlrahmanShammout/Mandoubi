@@ -10,6 +10,7 @@ export class ProductStockEntity extends BaseEntity {
   productId!: number;
   warehouseId!: number;
   quantity!: number;
+  reservedQuantity!: number;
   isPrimary!: boolean;
   warehouse?: WarehouseEntity;
   product?: ProductEntity;

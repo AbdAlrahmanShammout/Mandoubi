@@ -14,6 +14,10 @@ export class ProductStockResponse {
   readonly warehouseName: string;
   @ApiProperty({ example: 20 })
   readonly quantity: number;
+  @ApiProperty({ example: 4 })
+  readonly reservedQuantity: number;
+  @ApiProperty({ example: 16 })
+  readonly availableQuantity: number;
   @ApiProperty({ example: true })
   readonly isPrimary: boolean;
   constructor(stock: ProductStockEntity) {
@@ -24,6 +28,8 @@ export class ProductStockResponse {
     this.warehouseId = stock.warehouseId;
     this.warehouseName = stock.warehouse.name;
     this.quantity = stock.quantity;
+    this.reservedQuantity = stock.reservedQuantity;
+    this.availableQuantity = stock.quantity - stock.reservedQuantity;
     this.isPrimary = stock.isPrimary;
   }
 }
