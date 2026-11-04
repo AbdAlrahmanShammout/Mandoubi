@@ -1,9 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { ArrayMinSize, IsBoolean, IsEnum, IsInt, IsOptional, IsString, Matches, MaxLength, Min, MinLength, ValidateIf, ValidateNested } from 'class-validator';
+import { ArrayMinSize, IsBoolean, IsDateString, IsEnum, IsInt, IsOptional, IsString, Matches, MaxLength, Min, MinLength, ValidateIf, ValidateNested } from 'class-validator';
 import { MONEY_PATTERN } from '@/modules/product/constants/money.constant';
 import { ProductStockRequestDto } from '@/modules/product/dto/request/product-stock-request.dto';
 import { InvoiceCurrency } from '@/modules/product/enum/invoice-currency.enum';
+import { ProductCategory } from '@/modules/product/enum/product-category.enum';
+import { SaleUnit } from '@/modules/product/enum/sale-unit.enum';
 
 /**
  * Product opened by an administrator, including its warehouse quantities.
@@ -71,6 +73,34 @@ export class CreateProductRequestDto {
   @IsOptional()
   @IsEnum(InvoiceCurrency)
   invoiceCurrency?: InvoiceCurrency;
+  @ApiProperty({ description: 'Product category', enum: ProductCategory, example: ProductCategory.NATIONAL_MEDICINE })
+  @IsEnum(ProductCategory)
+  category!: ProductCategory;
+  @ApiProperty({ description: 'Sale unit', enum: SaleUnit, example: SaleUnit.PACK })
+  @IsEnum(SaleUnit)
+  saleUnit!: SaleUnit;
+  @ApiPropertyOptional({ description: 'Whether this product has an offer', example: false })
+  @IsOptional()
+  @IsBoolean()
+  offerActive?: boolean;
+  @ApiPropertyOptional({ description: 'Paid units required for the offer', example: 4 })
+  @ValidateIf((dto: CreateProductRequestDto) => dto.offerActive === true)
+  @IsInt()
+  @Min(1)
+  offerPaidUnits?: number;
+  @ApiPropertyOptional({ description: 'Free units granted by the offer', example: 1 })
+  @ValidateIf((dto: CreateProductRequestDto) => dto.offerActive === true)
+  @IsInt()
+  @Min(1)
+  offerFreeUnits?: number;
+  @ApiPropertyOptional({ description: 'Offer start date', example: '2026-11-01T00:00:00.000Z' })
+  @ValidateIf((dto: CreateProductRequestDto) => dto.offerActive === true)
+  @IsDateString()
+  offerStartsAt?: string;
+  @ApiPropertyOptional({ description: 'Offer end date', example: '2026-12-01T00:00:00.000Z' })
+  @ValidateIf((dto: CreateProductRequestDto) => dto.offerActive === true)
+  @IsDateString()
+  offerEndsAt?: string;
   @ApiProperty({ description: 'Warehouse quantities. One warehouse is primary.', type: [ProductStockRequestDto] })
   @ArrayMinSize(1)
   @ValidateNested({ each: true })

@@ -13,6 +13,7 @@ import { InvoiceCurrency } from '@/modules/product/enum/invoice-currency.enum';
 import { ProductAvailability } from '@/modules/product/enum/product-availability.enum';
 import { ProductStatus } from '@/modules/product/enum/product-status.enum';
 import { ProductStockSelection, assertOrderLimits, normalizeProductStocks } from '@/modules/product/helpers/normalize-product-stocks.helper';
+import { OfferSelection, resolveProductOffer } from '@/modules/product/helpers/product-offer.helper';
 import { calculateSypPrice } from '@/modules/product/helpers/syp-price.helper';
 import { ProductStockRepository } from '@/modules/product/repository/product-stock.repository';
 import { ProductRepository } from '@/modules/product/repository/product.repository';
@@ -30,12 +31,22 @@ interface PriceSelection {
   readonly invoiceCurrency?: InvoiceCurrency;
 }
 
-interface CreateProductServiceInput extends Omit<CreateProductRepoInput, 'stocks' | 'availability' | 'status' | 'imageUrl' | keyof ResolvedProductPrices>, PriceSelection {
+interface OfferRequest {
+  readonly offerActive?: boolean;
+  readonly offerPaidUnits?: number;
+  readonly offerFreeUnits?: number;
+  readonly offerStartsAt?: string;
+  readonly offerEndsAt?: string;
+}
+
+interface CreateProductServiceInput extends Omit<CreateProductRepoInput, 'stocks' | 'availability' | 'status' | 'imageUrl' | keyof ResolvedProductPrices | keyof OfferSelection>, PriceSelection, OfferRequest {
   readonly imageUrl?: string | null;
   readonly availability?: ProductAvailability;
   readonly status?: ProductStatus;
   readonly stocks: readonly ProductStockSelection[];
 }
+
+interface UpdateProductServiceInput extends Omit<UpdateProductRepoInput, keyof OfferSelection>, OfferRequest {}
 
 /**
  * Products and the warehouse quantities attached to them.
@@ -59,6 +70,7 @@ export class ProductService {
     await this.assertManufacturerActive(input.manufacturerId);
     await this.assertWarehousesExist(stocks);
     const prices = await this.resolvePrices(input);
+    const offer = resolveProductOffer(this.readOffer(input));
     return this.productRepository.create({
       name: input.name,
       barcode: input.barcode,
@@ -70,8 +82,11 @@ export class ProductService {
       lowQuantityThreshold: input.lowQuantityThreshold,
       availability: input.availability ?? ProductAvailability.AVAILABLE,
       status: input.status ?? ProductStatus.ACTIVE,
+      category: input.category,
+      saleUnit: input.saleUnit,
       stocks,
       ...prices,
+      ...offer,
     });
   }
   /**
@@ -93,14 +108,21 @@ export class ProductService {
   /**
    * Changes product data without changing warehouse quantities.
    */
-  async updateProduct(input: UpdateProductRepoInput): Promise<ProductEntity> {
+  async updateProduct(input: UpdateProductServiceInput): Promise<ProductEntity> {
     const current = await this.getProductById(input.id);
     assertOrderLimits(input.minimumOrderQuantity ?? current.minimumOrderQuantity, input.maximumOrderQuantity ?? current.maximumOrderQuantity);
     if (input.manufacturerId !== undefined) {
       await this.assertManufacturerActive(input.manufacturerId);
     }
     const prices = await this.resolvePrices(input, current);
-    const product = await this.productRepository.update({ ...input, ...prices });
+    const offer = resolveProductOffer(this.readOffer(input), current);
+    const { offerActive, offerPaidUnits, offerFreeUnits, offerStartsAt, offerEndsAt, ...productFields } = input;
+    void offerActive;
+    void offerPaidUnits;
+    void offerFreeUnits;
+    void offerStartsAt;
+    void offerEndsAt;
+    const product = await this.productRepository.update({ ...productFields, ...prices, ...offer });
     if (!product) {
       throw new ResourceNotFoundException('Product', input.id);
     }
@@ -180,6 +202,22 @@ export class ProductService {
       calculateSypFromRate: false,
       invoiceCurrency,
     };
+  }
+  private readOffer(input: OfferRequest): OfferSelection {
+    return {
+      offerActive: input.offerActive,
+      offerPaidUnits: input.offerPaidUnits,
+      offerFreeUnits: input.offerFreeUnits,
+      offerStartsAt: input.offerStartsAt === undefined ? undefined : this.readOfferDate(input.offerStartsAt),
+      offerEndsAt: input.offerEndsAt === undefined ? undefined : this.readOfferDate(input.offerEndsAt),
+    };
+  }
+  private readOfferDate(value: string): Date {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      throw new InvalidStateException({ message: 'The offer date is invalid', code: 'OFFER_INVALID' });
+    }
+    return date;
   }
   private readAmount(value: string | undefined, code: string): string {
     if (!value || !MONEY_PATTERN.test(value) || Number(value) <= 0) {

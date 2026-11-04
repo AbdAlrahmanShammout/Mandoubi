@@ -1,7 +1,9 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsEnum, IsInt, IsOptional, IsString, Matches, MaxLength, Min, MinLength, ValidateIf } from 'class-validator';
+import { IsBoolean, IsDateString, IsEnum, IsInt, IsOptional, IsString, Matches, MaxLength, Min, MinLength, ValidateIf } from 'class-validator';
 import { MONEY_PATTERN } from '@/modules/product/constants/money.constant';
 import { InvoiceCurrency } from '@/modules/product/enum/invoice-currency.enum';
+import { ProductCategory } from '@/modules/product/enum/product-category.enum';
+import { SaleUnit } from '@/modules/product/enum/sale-unit.enum';
 import { ProductAvailability } from '@/modules/product/enum/product-availability.enum';
 import { ProductStatus } from '@/modules/product/enum/product-status.enum';
 
@@ -89,4 +91,34 @@ export class UpdateProductRequestDto {
   @IsOptional()
   @IsEnum(InvoiceCurrency)
   invoiceCurrency?: InvoiceCurrency;
+  @ApiPropertyOptional({ description: 'Product category', enum: ProductCategory, example: ProductCategory.FOREIGN_MEDICINE })
+  @IsOptional()
+  @IsEnum(ProductCategory)
+  category?: ProductCategory;
+  @ApiPropertyOptional({ description: 'Sale unit', enum: SaleUnit, example: SaleUnit.BOX })
+  @IsOptional()
+  @IsEnum(SaleUnit)
+  saleUnit?: SaleUnit;
+  @ApiPropertyOptional({ description: 'Whether this product has an offer', example: true })
+  @IsOptional()
+  @IsBoolean()
+  offerActive?: boolean;
+  @ApiPropertyOptional({ description: 'Paid units required for the offer', example: 4 })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  offerPaidUnits?: number;
+  @ApiPropertyOptional({ description: 'Free units granted by the offer', example: 1 })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  offerFreeUnits?: number;
+  @ApiPropertyOptional({ description: 'Offer start date', example: '2026-11-01T00:00:00.000Z' })
+  @IsOptional()
+  @IsDateString()
+  offerStartsAt?: string;
+  @ApiPropertyOptional({ description: 'Offer end date', example: '2026-12-01T00:00:00.000Z' })
+  @IsOptional()
+  @IsDateString()
+  offerEndsAt?: string;
 }

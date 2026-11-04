@@ -92,6 +92,8 @@ function productBody(manufacturerId: number, warehouseId: number, barcode: strin
     minimumOrderQuantity: 1,
     maximumOrderQuantity: 10,
     lowQuantityThreshold: 2,
+    category: 'FOREIGN_MEDICINE',
+    saleUnit: 'BOX',
     stocks: [{ warehouseId, quantity: 8 }],
     ...prices,
   };

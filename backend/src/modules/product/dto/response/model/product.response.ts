@@ -3,6 +3,8 @@ import { BaseModelResponse } from '@/common/base/base-model.response';
 import { InternalException } from '@/common/exceptions/internal.exception';
 import { ProductEntity } from '@/modules/product/entity/product.entity';
 import { InvoiceCurrency } from '@/modules/product/enum/invoice-currency.enum';
+import { ProductCategory } from '@/modules/product/enum/product-category.enum';
+import { SaleUnit } from '@/modules/product/enum/sale-unit.enum';
 import { ProductAvailability } from '@/modules/product/enum/product-availability.enum';
 import { ProductStatus } from '@/modules/product/enum/product-status.enum';
 import { ProductStockResponse } from '@/modules/product/dto/response/model/product-stock.response';
@@ -41,6 +43,20 @@ export class ProductResponse extends BaseModelResponse {
   readonly calculateSypFromRate: boolean;
   @ApiProperty({ enum: InvoiceCurrency, example: InvoiceCurrency.SYP })
   readonly invoiceCurrency: InvoiceCurrency;
+  @ApiProperty({ enum: ProductCategory, example: ProductCategory.NATIONAL_MEDICINE })
+  readonly category: ProductCategory;
+  @ApiProperty({ enum: SaleUnit, example: SaleUnit.PACK })
+  readonly saleUnit: SaleUnit;
+  @ApiProperty({ example: false })
+  readonly offerActive: boolean;
+  @ApiProperty({ example: 4, nullable: true })
+  readonly offerPaidUnits: number | null;
+  @ApiProperty({ example: 1, nullable: true })
+  readonly offerFreeUnits: number | null;
+  @ApiProperty({ example: '2026-11-01T00:00:00.000Z', nullable: true })
+  readonly offerStartsAt: Date | null;
+  @ApiProperty({ example: '2026-12-01T00:00:00.000Z', nullable: true })
+  readonly offerEndsAt: Date | null;
   @ApiProperty({ enum: ProductAvailability, example: ProductAvailability.AVAILABLE })
   readonly availability: ProductAvailability;
   @ApiProperty({ enum: ProductStatus, example: ProductStatus.ACTIVE })
@@ -67,6 +83,13 @@ export class ProductResponse extends BaseModelResponse {
     this.consumerPriceSyp = product.consumerPriceSyp;
     this.calculateSypFromRate = product.calculateSypFromRate;
     this.invoiceCurrency = product.invoiceCurrency;
+    this.category = product.category;
+    this.saleUnit = product.saleUnit;
+    this.offerActive = product.offerActive;
+    this.offerPaidUnits = product.offerPaidUnits;
+    this.offerFreeUnits = product.offerFreeUnits;
+    this.offerStartsAt = product.offerStartsAt;
+    this.offerEndsAt = product.offerEndsAt;
     this.availability = product.availability;
     this.status = product.status;
     this.stocks = product.stocks.map((stock) => new ProductStockResponse(stock));

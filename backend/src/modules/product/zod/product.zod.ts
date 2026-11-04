@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import { BaseZodSchema } from '@/common/base/base.zod';
 import { InvoiceCurrency } from '@/modules/product/enum/invoice-currency.enum';
+import { ProductCategory } from '@/modules/product/enum/product-category.enum';
+import { SaleUnit } from '@/modules/product/enum/sale-unit.enum';
 import { ProductAvailability } from '@/modules/product/enum/product-availability.enum';
 import { ProductStatus } from '@/modules/product/enum/product-status.enum';
 
@@ -22,6 +24,13 @@ export const ProductZodSchema = BaseZodSchema.extend({
   consumerPriceSyp: z.string(),
   calculateSypFromRate: z.boolean(),
   invoiceCurrency: z.nativeEnum(InvoiceCurrency),
+  category: z.nativeEnum(ProductCategory),
+  saleUnit: z.nativeEnum(SaleUnit),
+  offerActive: z.boolean(),
+  offerPaidUnits: z.number().nullable(),
+  offerFreeUnits: z.number().nullable(),
+  offerStartsAt: z.date().nullable(),
+  offerEndsAt: z.date().nullable(),
   availability: z.nativeEnum(ProductAvailability),
   status: z.nativeEnum(ProductStatus),
 });

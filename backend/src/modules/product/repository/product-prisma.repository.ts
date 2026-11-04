@@ -39,6 +39,13 @@ export class ProductPrismaRepository extends ProductRepository {
           consumerPriceSyp: new Prisma.Decimal(input.consumerPriceSyp),
           calculateSypFromRate: input.calculateSypFromRate,
           invoiceCurrency: input.invoiceCurrency,
+          category: input.category,
+          saleUnit: input.saleUnit,
+          offerActive: input.offerActive,
+          offerPaidUnits: input.offerPaidUnits,
+          offerFreeUnits: input.offerFreeUnits,
+          offerStartsAt: input.offerStartsAt,
+          offerEndsAt: input.offerEndsAt,
           availability: input.availability,
           status: input.status,
           stocks: {
@@ -118,14 +125,7 @@ export class ProductPrismaRepository extends ProductRepository {
   }
 }
 
-function priceColumns(input: {
-  pharmacyPriceUsd?: string;
-  pharmacyPriceSyp?: string;
-  consumerPriceUsd?: string;
-  consumerPriceSyp?: string;
-  calculateSypFromRate?: boolean;
-  invoiceCurrency?: UpdateProductRepoInput['invoiceCurrency'];
-}): Prisma.ProductUpdateManyMutationInput {
+function priceColumns(input: UpdateProductRepoInput): Prisma.ProductUpdateManyMutationInput {
   return {
     ...(input.pharmacyPriceUsd !== undefined ? { pharmacyPriceUsd: new Prisma.Decimal(input.pharmacyPriceUsd) } : {}),
     ...(input.pharmacyPriceSyp !== undefined ? { pharmacyPriceSyp: new Prisma.Decimal(input.pharmacyPriceSyp) } : {}),
@@ -133,6 +133,13 @@ function priceColumns(input: {
     ...(input.consumerPriceSyp !== undefined ? { consumerPriceSyp: new Prisma.Decimal(input.consumerPriceSyp) } : {}),
     ...(input.calculateSypFromRate !== undefined ? { calculateSypFromRate: input.calculateSypFromRate } : {}),
     ...(input.invoiceCurrency !== undefined ? { invoiceCurrency: input.invoiceCurrency } : {}),
+    ...(input.category !== undefined ? { category: input.category } : {}),
+    ...(input.saleUnit !== undefined ? { saleUnit: input.saleUnit } : {}),
+    ...(input.offerActive !== undefined ? { offerActive: input.offerActive } : {}),
+    ...(input.offerPaidUnits !== undefined ? { offerPaidUnits: input.offerPaidUnits } : {}),
+    ...(input.offerFreeUnits !== undefined ? { offerFreeUnits: input.offerFreeUnits } : {}),
+    ...(input.offerStartsAt !== undefined ? { offerStartsAt: input.offerStartsAt } : {}),
+    ...(input.offerEndsAt !== undefined ? { offerEndsAt: input.offerEndsAt } : {}),
   };
 }
 

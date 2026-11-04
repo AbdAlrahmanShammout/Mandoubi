@@ -1,4 +1,7 @@
 import { InvoiceCurrency } from '@/modules/product/enum/invoice-currency.enum';
+import { ProductCategory } from '@/modules/product/enum/product-category.enum';
+import { SaleUnit } from '@/modules/product/enum/sale-unit.enum';
+import { ResolvedOffer } from '@/modules/product/helpers/product-offer.helper';
 import { ProductAvailability } from '@/modules/product/enum/product-availability.enum';
 import { ProductStatus } from '@/modules/product/enum/product-status.enum';
 import { NormalizedProductStock } from '@/modules/product/helpers/normalize-product-stocks.helper';
@@ -18,7 +21,9 @@ export interface ResolvedProductPrices {
 /**
  * Product row plus the stock rows created with it.
  */
-export interface CreateProductRepoInput extends ResolvedProductPrices {
+export interface CreateProductRepoInput extends ResolvedProductPrices, ResolvedOffer {
+  readonly category: ProductCategory;
+  readonly saleUnit: SaleUnit;
   readonly name: string;
   readonly barcode: string;
   readonly manufacturerId: number;
@@ -53,4 +58,11 @@ export interface UpdateProductRepoInput {
   readonly consumerPriceSyp?: string;
   readonly calculateSypFromRate?: boolean;
   readonly invoiceCurrency?: InvoiceCurrency;
+  readonly category?: ProductCategory;
+  readonly saleUnit?: SaleUnit;
+  readonly offerActive?: boolean;
+  readonly offerPaidUnits?: number | null;
+  readonly offerFreeUnits?: number | null;
+  readonly offerStartsAt?: Date | null;
+  readonly offerEndsAt?: Date | null;
 }

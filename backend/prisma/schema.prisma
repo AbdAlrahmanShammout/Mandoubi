@@ -91,6 +91,18 @@ enum InvoiceCurrency {
   SYP
 }
 
+enum ProductCategory {
+  NATIONAL_MEDICINE
+  FOREIGN_MEDICINE
+  ACCESSORY
+}
+
+enum SaleUnit {
+  PACK
+  BOX
+  SACHET
+}
+
 /// The single USD to Syrian-pound rate. The row id is fixed at 1.
 model ExchangeRate {
   id        Int      @id
@@ -142,6 +154,13 @@ model Product {
   consumerPriceSyp     Decimal             @map("consumer_price_syp") @db.Decimal(18, 2)
   calculateSypFromRate Boolean             @default(false) @map("calculate_syp_from_rate")
   invoiceCurrency      InvoiceCurrency     @default(SYP) @map("invoice_currency")
+  category             ProductCategory
+  saleUnit             SaleUnit            @map("sale_unit")
+  offerActive          Boolean             @default(false) @map("offer_active")
+  offerPaidUnits       Int?                @map("offer_paid_units")
+  offerFreeUnits       Int?                @map("offer_free_units")
+  offerStartsAt        DateTime?           @map("offer_starts_at")
+  offerEndsAt          DateTime?           @map("offer_ends_at")
   availability         ProductAvailability @default(AVAILABLE)
   status               RecordStatus        @default(ACTIVE)
   createdAt            DateTime            @default(now()) @map("created_at")

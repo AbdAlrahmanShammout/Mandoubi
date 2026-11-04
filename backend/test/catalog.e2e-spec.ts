@@ -128,6 +128,8 @@ function productBody(manufacturerId: number, barcode: string, stocks: ReadonlyAr
     pharmacyPriceSyp: '40000',
     consumerPriceUsd: '3.00',
     consumerPriceSyp: '50000',
+    category: 'NATIONAL_MEDICINE',
+    saleUnit: 'PACK',
     stocks,
   };
 }

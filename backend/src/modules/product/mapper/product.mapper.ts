@@ -2,6 +2,8 @@ import { InternalException } from '@/common/exceptions/internal.exception';
 import { ManufacturerMapper } from '@/modules/manufacturer/mapper/manufacturer.mapper';
 import { ProductEntity } from '@/modules/product/entity/product.entity';
 import { InvoiceCurrency } from '@/modules/product/enum/invoice-currency.enum';
+import { ProductCategory } from '@/modules/product/enum/product-category.enum';
+import { SaleUnit } from '@/modules/product/enum/sale-unit.enum';
 import { ProductAvailability } from '@/modules/product/enum/product-availability.enum';
 import { ProductStatus } from '@/modules/product/enum/product-status.enum';
 import { formatMoney } from '@/modules/product/helpers/syp-price.helper';
@@ -35,6 +37,13 @@ export class ProductMapper {
       consumerPriceSyp: formatMoney(payload.consumerPriceSyp),
       calculateSypFromRate: payload.calculateSypFromRate,
       invoiceCurrency: payload.invoiceCurrency as InvoiceCurrency,
+      category: payload.category as ProductCategory,
+      saleUnit: payload.saleUnit as SaleUnit,
+      offerActive: payload.offerActive,
+      offerPaidUnits: payload.offerPaidUnits,
+      offerFreeUnits: payload.offerFreeUnits,
+      offerStartsAt: payload.offerStartsAt,
+      offerEndsAt: payload.offerEndsAt,
       availability: payload.availability as ProductAvailability,
       status: payload.status as ProductStatus,
       createdAt: payload.createdAt,
