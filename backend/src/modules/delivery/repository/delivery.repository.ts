@@ -15,6 +15,8 @@ export abstract class DeliveryRepository {
   abstract listOpenByDriverId(driverId: number): Promise<DeliveryAssignmentEntity[]>;
   /** Lists every assignment given to one driver. */
   abstract listByDriverId(driverId: number): Promise<DeliveryAssignmentEntity[]>;
+  /** Points an existing assignment at another driver. Returns false when the invoice has no assignment. */
+  abstract reassign(input: { readonly invoiceId: number; readonly driverId: number; readonly assignedByUserId: number }, context: TransactionContext): Promise<boolean>;
   /** Inserts one delivery result. Existing rows stay unchanged. */
   abstract appendEvent(input: CreateDeliveryEventRepoInput, context?: TransactionContext): Promise<DeliveryEventEntity>;
 }

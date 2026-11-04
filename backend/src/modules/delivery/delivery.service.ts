@@ -14,6 +14,11 @@ import { InvoiceEntity } from '@/modules/invoice/entity/invoice.entity';
 import { InvoiceItemEntity } from '@/modules/invoice/entity/invoice-item.entity';
 import { InvoiceStatus } from '@/modules/invoice/enum/invoice-status.enum';
 import { InvoiceService } from '@/modules/invoice/invoice.service';
+import { AuditAction } from '@/modules/audit/enum/audit-action.enum';
+import { AuditService } from '@/modules/audit/audit.service';
+import { NotificationAudience } from '@/modules/notification/enum/notification-audience.enum';
+import { NotificationKind } from '@/modules/notification/enum/notification-kind.enum';
+import { NotificationService } from '@/modules/notification/notification.service';
 import { PaymentService } from '@/modules/payment/payment.service';
 import { ProductService } from '@/modules/product/product.service';
 import { AccountStatus } from '@/modules/user/enum/account-status.enum';
@@ -33,6 +38,7 @@ interface AssignDeliveryInput {
 interface RecordDeliveryInput extends DeliveryResultSelection {
   readonly invoiceId: number;
   readonly driverId: number;
+  readonly actorUserId: number;
 }
 
 /**
@@ -54,6 +60,8 @@ export class DeliveryService {
     private readonly driverService: DriverService,
     private readonly productService: ProductService,
     private readonly paymentService: PaymentService,
+    private readonly auditService: AuditService,
+    private readonly notificationService: NotificationService,
     private readonly transactionRunner: TransactionRunner,
   ) {}
   /**
@@ -64,9 +72,16 @@ export class DeliveryService {
     if (driver.status !== AccountStatus.ACTIVE) {
       throw new InvalidStateException({ message: 'The driver account is not active', code: 'DRIVER_INACTIVE' });
     }
+    const invoice = await this.invoiceService.getInvoiceById(input.invoiceId);
+    if (invoice.status === InvoiceStatus.RETURNED_TO_WAREHOUSE) {
+      return this.sendOutAgain(input, invoice);
+    }
     return this.transactionRunner.run(async (context) => {
       await this.invoiceService.markAssigned(input.invoiceId, context);
-      return this.deliveryRepository.createAssignment(input, context);
+      const assignment = await this.deliveryRepository.createAssignment(input, context);
+      await this.recordStatus(input.assignedByUserId, input.invoiceId, InvoiceStatus.APPROVED, InvoiceStatus.ASSIGNED, context);
+      await this.notifyAssigned(input.invoiceId, input.driverId, assignment.pharmacy?.id, context);
+      return assignment;
     });
   }
   /**
@@ -92,6 +107,7 @@ export class DeliveryService {
       if (!assignment || assignment.driverId !== input.driverId) {
         throw new ResourceNotFoundException('Delivery assignment', input.invoiceId);
       }
+      const previousStatus = assignment.invoice?.status ?? InvoiceStatus.ASSIGNED;
       const invoice = await this.invoiceService.markDelivered(input.invoiceId, invoiceStatusFor(resolved.result), context);
       const event = await this.deliveryRepository.appendEvent({
         assignmentId: assignment.id,
@@ -101,7 +117,9 @@ export class DeliveryService {
         ...resolved,
       }, context);
       await this.issueDeliveredStock(invoice, resolved, context);
-      await this.recordCollection(assignment, driver.name, invoice, resolved, event.occurredAt, context);
+      await this.recordCollection(assignment, driver.name, invoice, resolved, event.occurredAt, input.actorUserId, context);
+      await this.recordStatus(input.actorUserId, input.invoiceId, previousStatus, invoice.status, context);
+      await this.notifyDelivery(input.invoiceId, assignment.pharmacy?.id, invoice.status, context);
       return { event, invoiceStatus: invoice.status };
     });
   }
@@ -113,7 +131,29 @@ export class DeliveryService {
       await this.productService.issueRecordedStock({ productId: item.productId, warehouseId: item.primaryWarehouseId, quantity: item.totalQuantity }, context);
     }
   }
-  private async recordCollection(assignment: DeliveryAssignmentEntity, driverName: string, invoice: InvoiceEntity, resolved: ResolvedDeliveryResult, occurredAt: Date, context: TransactionContext): Promise<void> {
+  private async sendOutAgain(input: AssignDeliveryInput, invoice: InvoiceEntity): Promise<DeliveryAssignmentEntity> {
+    return this.transactionRunner.run(async (context) => {
+      const sent = await this.invoiceService.markOutForDelivery(input.invoiceId, context);
+      await this.reserveItems(requireItems(sent), context);
+      const reassigned = await this.deliveryRepository.reassign(input, context);
+      if (!reassigned) {
+        throw new ResourceNotFoundException('Delivery assignment', input.invoiceId);
+      }
+      await this.recordStatus(input.assignedByUserId, input.invoiceId, invoice.status, InvoiceStatus.OUT_FOR_DELIVERY, context);
+      const assignment = await this.deliveryRepository.findByInvoiceId(input.invoiceId, context);
+      if (!assignment) {
+        throw new ResourceNotFoundException('Delivery assignment', input.invoiceId);
+      }
+      await this.notifyAssigned(input.invoiceId, input.driverId, assignment.pharmacy?.id, context);
+      return assignment;
+    });
+  }
+  private async reserveItems(items: readonly InvoiceItemEntity[], context: TransactionContext): Promise<void> {
+    for (const item of items) {
+      await this.productService.reserveRecordedStock({ productId: item.productId, warehouseId: item.primaryWarehouseId, quantity: item.totalQuantity }, context);
+    }
+  }
+  private async recordCollection(assignment: DeliveryAssignmentEntity, driverName: string, invoice: InvoiceEntity, resolved: ResolvedDeliveryResult, occurredAt: Date, actorUserId: number, context: TransactionContext): Promise<void> {
     if (resolved.result !== DeliveryResult.DELIVERED_PAID) {
       return;
     }
@@ -126,7 +166,35 @@ export class DeliveryService {
       driverName,
       invoice,
       occurredAt,
+      actorUserId,
     }, context);
+  }
+  private async recordStatus(actorUserId: number, invoiceId: number, from: InvoiceStatus, to: InvoiceStatus, context: TransactionContext): Promise<void> {
+    await this.auditService.record({
+      actorUserId,
+      action: AuditAction.INVOICE_STATUS_CHANGED,
+      resourceType: 'invoice',
+      resourceId: String(invoiceId),
+      detail: { from, to },
+    }, context);
+  }
+  private async notifyAssigned(invoiceId: number, driverId: number, pharmacyId: number | undefined, context: TransactionContext): Promise<void> {
+    const message = { kind: NotificationKind.INVOICE_ASSIGNED, title: 'Invoice assigned', body: `Invoice ${invoiceId} was assigned`, resourceType: 'invoice', resourceId: invoiceId };
+    await this.notificationService.notify({ ...message, audience: NotificationAudience.DRIVER, audienceId: driverId }, context);
+    if (pharmacyId !== undefined) {
+      await this.notificationService.notify({ ...message, audience: NotificationAudience.PHARMACY, audienceId: pharmacyId }, context);
+    }
+  }
+  private async notifyDelivery(invoiceId: number, pharmacyId: number | undefined, status: InvoiceStatus, context: TransactionContext): Promise<void> {
+    const message = { title: 'Delivery updated', body: `Invoice ${invoiceId} is ${status}`, resourceType: 'invoice', resourceId: invoiceId };
+    await this.notificationService.notify({ ...message, audience: NotificationAudience.ADMIN, audienceId: null, kind: NotificationKind.DELIVERY_UPDATED }, context);
+    if (pharmacyId === undefined) {
+      return;
+    }
+    await this.notificationService.notify({ ...message, audience: NotificationAudience.PHARMACY, audienceId: pharmacyId, kind: NotificationKind.DELIVERY_UPDATED }, context);
+    if (status === InvoiceStatus.DELIVERED_UNPAID) {
+      await this.notificationService.notify({ ...message, audience: NotificationAudience.PHARMACY, audienceId: pharmacyId, kind: NotificationKind.AMOUNT_DUE, title: 'Amount due', body: `Invoice ${invoiceId} remains due` }, context);
+    }
   }
 }
 

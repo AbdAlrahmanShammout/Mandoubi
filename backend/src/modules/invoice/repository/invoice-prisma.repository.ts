@@ -37,6 +37,12 @@ export class InvoicePrismaRepository extends InvoiceRepository {
     const result = await client.invoice.findUnique({ where: { id }, include: invoiceDetailsInclude });
     return result ? InvoiceMapper.toEntity(result) : null;
   }
+  /** Loads the pharmacy that submitted the parent order. */
+  async findPharmacyId(id: number, context?: TransactionContext): Promise<number | null> {
+    const client = resolvePrismaClient(this.prisma, context);
+    const result = await client.invoice.findUnique({ where: { id }, select: { order: { select: { pharmacyId: true } } } });
+    return result?.order.pharmacyId ?? null;
+  }
   /** Approves a pending invoice without changing stock itself. */
   async markApproved(id: number, context: TransactionContext): Promise<boolean> {
     const client = resolvePrismaClient(this.prisma, context);
@@ -58,10 +64,22 @@ export class InvoicePrismaRepository extends InvoiceRepository {
     const updated = await client.invoice.updateMany({ where: { id, status: 'APPROVED' }, data: { status: 'ASSIGNED' } });
     return updated.count === 1;
   }
-  /** Records a delivery result on an assigned invoice. */
+  /** Records a delivery result on an assigned or redelivered invoice. */
   async markDelivered(id: number, status: InvoiceStatus, context: TransactionContext): Promise<boolean> {
     const client = resolvePrismaClient(this.prisma, context);
-    const updated = await client.invoice.updateMany({ where: { id, status: 'ASSIGNED' }, data: { status } });
+    const updated = await client.invoice.updateMany({ where: { id, status: { in: ['ASSIGNED', 'OUT_FOR_DELIVERY'] } }, data: { status } });
+    return updated.count === 1;
+  }
+  /** Returns a missed or unpaid invoice to the warehouse. */
+  async markReturned(id: number, context: TransactionContext): Promise<boolean> {
+    const client = resolvePrismaClient(this.prisma, context);
+    const updated = await client.invoice.updateMany({ where: { id, status: { in: ['NOT_DELIVERED', 'DELIVERED_UNPAID'] } }, data: { status: 'RETURNED_TO_WAREHOUSE' } });
+    return updated.count === 1;
+  }
+  /** Sends a returned invoice out for delivery again. */
+  async markOutForDelivery(id: number, context: TransactionContext): Promise<boolean> {
+    const client = resolvePrismaClient(this.prisma, context);
+    const updated = await client.invoice.updateMany({ where: { id, status: 'RETURNED_TO_WAREHOUSE' }, data: { status: 'OUT_FOR_DELIVERY' } });
     return updated.count === 1;
   }
 }

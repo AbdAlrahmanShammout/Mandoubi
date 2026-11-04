@@ -1,6 +1,8 @@
 import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { LoggedInUser } from '@/common/decorators/requests/logged-in-user.decorator';
 import { Roles } from '@/common/decorators/route/roles.decorator';
+import { Principal } from '@/common/auth/principal.interface';
 import { RolesGuard } from '@/common/guards/roles.guard';
 import { RecordReceiptRequestDto } from '@/modules/payment/dto/request/record-receipt-request.dto';
 import { PaymentResponse } from '@/modules/payment/dto/response/model/payment.response';
@@ -24,8 +26,8 @@ export class PaymentAdminController {
    */
   @Post()
   @ApiOperation({ summary: 'Record a receipt voucher' })
-  async record(@Body() body: RecordReceiptRequestDto): Promise<PaymentResponse> {
-    const payment = await this.paymentService.recordReceipt({ ...body, paymentMethod: body.paymentMethod ?? PaymentMethod.CASH });
+  async record(@LoggedInUser() currentUser: Principal, @Body() body: RecordReceiptRequestDto): Promise<PaymentResponse> {
+    const payment = await this.paymentService.recordReceipt({ ...body, actorUserId: currentUser.id, paymentMethod: body.paymentMethod ?? PaymentMethod.CASH });
     return new PaymentResponse(payment);
   }
 }

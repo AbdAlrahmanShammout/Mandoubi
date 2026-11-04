@@ -1,7 +1,9 @@
 import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Put, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { LoggedInUser } from '@/common/decorators/requests/logged-in-user.decorator';
 import { Roles } from '@/common/decorators/route/roles.decorator';
 import { RolesGuard } from '@/common/guards/roles.guard';
+import { Principal } from '@/common/auth/principal.interface';
 import { ChangePrimaryWarehouseRequestDto } from '@/modules/product/dto/request/change-primary-warehouse-request.dto';
 import { CreateProductRequestDto } from '@/modules/product/dto/request/create-product-request.dto';
 import { ReplaceProductStocksRequestDto } from '@/modules/product/dto/request/replace-product-stocks-request.dto';
@@ -63,8 +65,8 @@ export class ProductAdminController {
    */
   @Put(':id/stocks')
   @ApiOperation({ summary: 'Replace product warehouse quantities' })
-  async replaceStocks(@Param('id', ParseIntPipe) id: number, @Body() body: ReplaceProductStocksRequestDto): Promise<ProductResponse> {
-    const product = await this.productService.replaceStocks(id, body.stocks);
+  async replaceStocks(@LoggedInUser() currentUser: Principal, @Param('id', ParseIntPipe) id: number, @Body() body: ReplaceProductStocksRequestDto): Promise<ProductResponse> {
+    const product = await this.productService.replaceStocks(id, body.stocks, currentUser.id);
     return new ProductResponse(product);
   }
   /**
@@ -73,11 +75,12 @@ export class ProductAdminController {
   @Patch(':id/stocks/:warehouseId')
   @ApiOperation({ summary: 'Update one warehouse quantity' })
   async updateQuantity(
+    @LoggedInUser() currentUser: Principal,
     @Param('id', ParseIntPipe) id: number,
     @Param('warehouseId', ParseIntPipe) warehouseId: number,
     @Body() body: UpdateProductStockQuantityRequestDto,
   ): Promise<ProductResponse> {
-    const product = await this.productService.updateStockQuantity(id, warehouseId, body.quantity);
+    const product = await this.productService.updateStockQuantity(id, warehouseId, body.quantity, currentUser.id);
     return new ProductResponse(product);
   }
   /**

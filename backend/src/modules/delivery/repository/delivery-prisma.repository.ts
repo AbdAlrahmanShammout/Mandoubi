@@ -38,7 +38,7 @@ export class DeliveryPrismaRepository extends DeliveryRepository {
   /** Lists assignments whose invoice is still waiting for a result. */
   async listOpenByDriverId(driverId: number): Promise<DeliveryAssignmentEntity[]> {
     const results = await this.prisma.deliveryAssignment.findMany({
-      where: { driverId, invoice: { status: 'ASSIGNED' } },
+      where: { driverId, invoice: { status: { in: ['ASSIGNED', 'OUT_FOR_DELIVERY'] } } },
       include: deliveryAssignmentInclude,
       orderBy: { id: 'asc' },
     });
@@ -48,6 +48,12 @@ export class DeliveryPrismaRepository extends DeliveryRepository {
   async listByDriverId(driverId: number): Promise<DeliveryAssignmentEntity[]> {
     const results = await this.prisma.deliveryAssignment.findMany({ where: { driverId }, include: deliveryAssignmentInclude, orderBy: { id: 'asc' } });
     return results.map((result) => DeliveryAssignmentMapper.toEntity(result));
+  }
+  /** Updates the driver on the assignment that already belongs to the invoice. */
+  async reassign(input: { readonly invoiceId: number; readonly driverId: number; readonly assignedByUserId: number }, context: TransactionContext): Promise<boolean> {
+    const client = resolvePrismaClient(this.prisma, context);
+    const updated = await client.deliveryAssignment.updateMany({ where: { invoiceId: input.invoiceId }, data: { driverId: input.driverId, assignedByUserId: input.assignedByUserId } });
+    return updated.count === 1;
   }
   /** Inserts one event and does not update older events. */
   async appendEvent(input: CreateDeliveryEventRepoInput, context?: TransactionContext): Promise<DeliveryEventEntity> {

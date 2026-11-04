@@ -8,6 +8,11 @@ import { InvoiceEntity } from '@/modules/invoice/entity/invoice.entity';
 import { InvoiceItemEntity } from '@/modules/invoice/entity/invoice-item.entity';
 import { InvoiceStatus } from '@/modules/invoice/enum/invoice-status.enum';
 import { InvoiceRepository } from '@/modules/invoice/repository/invoice.repository';
+import { AuditAction } from '@/modules/audit/enum/audit-action.enum';
+import { AuditService } from '@/modules/audit/audit.service';
+import { NotificationAudience } from '@/modules/notification/enum/notification-audience.enum';
+import { NotificationKind } from '@/modules/notification/enum/notification-kind.enum';
+import { NotificationService } from '@/modules/notification/notification.service';
 import { ProductService } from '@/modules/product/product.service';
 import { RejectionReasonService } from '@/modules/rejection-reason/rejection-reason.service';
 
@@ -28,6 +33,8 @@ export class InvoiceService {
     private readonly invoiceRepository: InvoiceRepository,
     private readonly productService: ProductService,
     private readonly rejectionReasonService: RejectionReasonService,
+    private readonly auditService: AuditService,
+    private readonly notificationService: NotificationService,
     private readonly transactionRunner: TransactionRunner,
   ) {}
   /**
@@ -49,7 +56,7 @@ export class InvoiceService {
   /**
    * Approves one pending invoice and reserves its quantity from the recorded warehouses.
    */
-  async approveInvoice(id: number): Promise<InvoiceEntity> {
+  async approveInvoice(id: number, actorUserId: number): Promise<InvoiceEntity> {
     return this.transactionRunner.run(async (context) => {
       const approved = await this.invoiceRepository.markApproved(id, context);
       const invoice = await this.requireInvoice(id, context);
@@ -57,13 +64,15 @@ export class InvoiceService {
         throw new InvalidStateException({ message: 'Only a pending invoice can be approved', code: 'INVOICE_NOT_PENDING' });
       }
       await this.reserveItems(requireItems(invoice), context);
+      await this.recordStatus(actorUserId, id, InvoiceStatus.PENDING, InvoiceStatus.APPROVED, context);
+      await this.notifyPharmacy(id, NotificationKind.INVOICE_APPROVED, 'Invoice approved', `Invoice ${id} was approved`, context);
       return invoice;
     });
   }
   /**
    * Rejects one pending invoice. Stock is left unchanged.
    */
-  async rejectInvoice(id: number, input: RejectInvoiceInput): Promise<InvoiceEntity> {
+  async rejectInvoice(id: number, input: RejectInvoiceInput, actorUserId: number): Promise<InvoiceEntity> {
     const rejectionReasonId = await this.readReasonId(input.rejectionReasonId);
     const customReason = readCustomReason(input.customReason);
     return this.transactionRunner.run(async (context) => {
@@ -72,6 +81,8 @@ export class InvoiceService {
         await this.requireInvoice(id, context);
         throw new InvalidStateException({ message: 'Only a pending invoice can be rejected', code: 'INVOICE_NOT_PENDING' });
       }
+      await this.recordStatus(actorUserId, id, InvoiceStatus.PENDING, InvoiceStatus.REJECTED, context);
+      await this.notifyPharmacy(id, NotificationKind.INVOICE_REJECTED, 'Invoice rejected', `Invoice ${id} was rejected`, context);
       return this.requireInvoice(id, context);
     });
   }
@@ -95,6 +106,65 @@ export class InvoiceService {
       throw new InvalidStateException({ message: 'Only an assigned invoice can record a delivery result', code: 'INVOICE_NOT_ASSIGNED' });
     }
     return invoice;
+  }
+  /**
+   * Loads an invoice inside an already open transaction.
+   */
+  async getInvoiceInTransaction(id: number, context: TransactionContext): Promise<InvoiceEntity> {
+    return this.requireInvoice(id, context);
+  }
+  /**
+   * Loads the pharmacy that owns the invoice.
+   */
+  async findPharmacyId(id: number, context?: TransactionContext): Promise<number> {
+    const pharmacyId = await this.invoiceRepository.findPharmacyId(id, context);
+    if (pharmacyId === null) {
+      throw new ResourceNotFoundException('Invoice', id);
+    }
+    return pharmacyId;
+  }
+  /**
+   * Moves a missed or unpaid delivery to returned and returns the invoice.
+   */
+  async markReturned(id: number, context: TransactionContext): Promise<InvoiceEntity> {
+    const returned = await this.invoiceRepository.markReturned(id, context);
+    const invoice = await this.requireInvoice(id, context);
+    if (!returned) {
+      throw new InvalidStateException({ message: 'Only an unpaid or undelivered invoice can return to the warehouse', code: 'RETURN_NOT_ALLOWED' });
+    }
+    return invoice;
+  }
+  /**
+   * Sends a returned invoice out for delivery again.
+   */
+  async markOutForDelivery(id: number, context: TransactionContext): Promise<InvoiceEntity> {
+    const sent = await this.invoiceRepository.markOutForDelivery(id, context);
+    const invoice = await this.requireInvoice(id, context);
+    if (!sent) {
+      throw new InvalidStateException({ message: 'Only an invoice in the warehouse can be sent out again', code: 'INVOICE_NOT_RETURNED' });
+    }
+    return invoice;
+  }
+  private async recordStatus(actorUserId: number, invoiceId: number, from: InvoiceStatus, to: InvoiceStatus, context: TransactionContext): Promise<void> {
+    await this.auditService.record({
+      actorUserId,
+      action: AuditAction.INVOICE_STATUS_CHANGED,
+      resourceType: 'invoice',
+      resourceId: String(invoiceId),
+      detail: { from, to },
+    }, context);
+  }
+  private async notifyPharmacy(invoiceId: number, kind: NotificationKind, title: string, body: string, context: TransactionContext): Promise<void> {
+    const pharmacyId = await this.findPharmacyId(invoiceId, context);
+    await this.notificationService.notify({
+      audience: NotificationAudience.PHARMACY,
+      audienceId: pharmacyId,
+      kind,
+      title,
+      body,
+      resourceType: 'invoice',
+      resourceId: invoiceId,
+    }, context);
   }
   private async readReasonId(rejectionReasonId?: number): Promise<number | null> {
     if (rejectionReasonId === undefined) {

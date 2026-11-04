@@ -45,7 +45,7 @@ export class DeliveryDriverController {
   @ApiOperation({ summary: 'Record a delivery result' })
   async record(@LoggedInUser() currentUser: Principal, @Param('invoiceId', ParseIntPipe) invoiceId: number, @Body() body: RecordDeliveryResultRequestDto): Promise<DeliveryEventResponse> {
     const driverId = await this.readDriverId(currentUser.id);
-    const recorded = await this.deliveryService.recordResult({ invoiceId, driverId, ...body });
+    const recorded = await this.deliveryService.recordResult({ invoiceId, driverId, actorUserId: currentUser.id, ...body });
     return new DeliveryEventResponse(recorded);
   }
   private async readDriverId(userId: number): Promise<number> {

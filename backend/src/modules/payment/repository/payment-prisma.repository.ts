@@ -74,6 +74,12 @@ export class PaymentPrismaRepository extends PaymentRepository {
     const results = await this.prisma.payment.findMany({ where: { id: { in: [...paymentIds] }, kind: 'DRIVER_COLLECTION' }, include: paymentDetailsInclude });
     return results.map((result) => PaymentMapper.toEntity(result));
   }
+  /** Reports whether a receipt or collection already covers this invoice. */
+  async hasAllocation(invoiceId: number, context?: TransactionContext): Promise<boolean> {
+    const client = resolvePrismaClient(this.prisma, context);
+    const count = await client.paymentAllocation.count({ where: { invoiceId } });
+    return count > 0;
+  }
 }
 
 function toItem(item: Prisma.InvoiceItemGetPayload<object>): InvoiceItemEntity {

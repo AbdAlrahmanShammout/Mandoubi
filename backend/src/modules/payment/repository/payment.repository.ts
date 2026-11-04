@@ -17,4 +17,6 @@ export abstract class PaymentRepository {
   abstract listDriverCollections(driverId: number): Promise<PaymentEntity[]>;
   /** Loads collections by id. */
   abstract findCollectionsByIds(paymentIds: readonly number[]): Promise<PaymentEntity[]>;
+  /** Reports whether any payment already covers this invoice. */
+  abstract hasAllocation(invoiceId: number, context?: TransactionContext): Promise<boolean>;
 }

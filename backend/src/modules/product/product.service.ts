@@ -3,6 +3,8 @@ import { TransactionContext } from '@/common/base/transaction-context';
 import { TransactionRunner } from '@/common/base/transaction-runner';
 import { InvalidStateException } from '@/common/exceptions/invalid-state.exception';
 import { ResourceNotFoundException } from '@/common/exceptions/resource-not-found.exception';
+import { AuditAction } from '@/modules/audit/enum/audit-action.enum';
+import { AuditService } from '@/modules/audit/audit.service';
 import { ExchangeRateService } from '@/modules/exchange-rate/exchange-rate.service';
 import { ManufacturerStatus } from '@/modules/manufacturer/enum/manufacturer-status.enum';
 import { ManufacturerService } from '@/modules/manufacturer/manufacturer.service';
@@ -61,6 +63,7 @@ export class ProductService {
     private readonly manufacturerService: ManufacturerService,
     private readonly warehouseService: WarehouseService,
     private readonly exchangeRateService: ExchangeRateService,
+    private readonly auditService: AuditService,
     private readonly transactionRunner: TransactionRunner,
   ) {}
   /**
@@ -133,7 +136,7 @@ export class ProductService {
   /**
    * Replaces the warehouse links. A lone warehouse is stored as primary.
    */
-  async replaceStocks(productId: number, selections: readonly ProductStockSelection[]): Promise<ProductEntity> {
+  async replaceStocks(productId: number, selections: readonly ProductStockSelection[], actorUserId: number): Promise<ProductEntity> {
     await this.getProductById(productId);
     const stocks = normalizeProductStocks(selections);
     await this.assertWarehousesExist(stocks);
@@ -141,21 +144,38 @@ export class ProductService {
       const current = await this.productStockRepository.listReservations(productId, context);
       const preserved = preserveReservedStock(current, stocks);
       await this.productStockRepository.replaceForProduct({ productId, stocks: preserved }, context);
+      await this.auditService.record({
+        actorUserId,
+        action: AuditAction.STOCK_QUANTITY_CHANGED,
+        resourceType: 'product',
+        resourceId: String(productId),
+        detail: { productId, warehouses: preserved.map((stock) => `${stock.warehouseId}:${stock.quantity}`).join(',') },
+      }, context);
     });
     return this.getProductById(productId);
   }
   /**
    * Sets one warehouse quantity and leaves the other warehouses unchanged.
    */
-  async updateStockQuantity(productId: number, warehouseId: number, quantity: number): Promise<ProductEntity> {
-    await this.getProductById(productId);
-    const updated = await this.productStockRepository.updateQuantity({ productId, warehouseId, quantity });
-    if (updated === 'missing') {
-      throw new ResourceNotFoundException('Product stock', `${productId}:${warehouseId}`);
-    }
-    if (updated === 'locked') {
-      throw new InvalidStateException({ message: 'Physical quantity cannot fall below the reserved quantity', code: 'RESERVED_STOCK_LOCKED' });
-    }
+  async updateStockQuantity(productId: number, warehouseId: number, quantity: number, actorUserId: number): Promise<ProductEntity> {
+    const current = await this.getProductById(productId);
+    const previous = readStockQuantity(current, warehouseId);
+    await this.transactionRunner.run(async (context) => {
+      const updated = await this.productStockRepository.updateQuantity({ productId, warehouseId, quantity }, context);
+      if (updated === 'missing') {
+        throw new ResourceNotFoundException('Product stock', `${productId}:${warehouseId}`);
+      }
+      if (updated === 'locked') {
+        throw new InvalidStateException({ message: 'Physical quantity cannot fall below the reserved quantity', code: 'RESERVED_STOCK_LOCKED' });
+      }
+      await this.auditService.record({
+        actorUserId,
+        action: AuditAction.STOCK_QUANTITY_CHANGED,
+        resourceType: 'product',
+        resourceId: String(productId),
+        detail: { productId, warehouseId, from: previous, to: quantity },
+      }, context);
+    });
     return this.getProductById(productId);
   }
   /**
@@ -174,6 +194,24 @@ export class ProductService {
     const issued = await this.productStockRepository.issue(input, context);
     if (!issued) {
       throw new InvalidStateException({ message: 'The reserved quantity is no longer on the recorded warehouse', code: 'RESERVED_STOCK_MISSING' });
+    }
+  }
+  /**
+   * Releases a reservation that was never issued. Physical quantity stays unchanged.
+   */
+  async releaseRecordedStock(input: { readonly productId: number; readonly warehouseId: number; readonly quantity: number }, context: TransactionContext): Promise<void> {
+    const released = await this.productStockRepository.release(input, context);
+    if (!released) {
+      throw new InvalidStateException({ message: 'The reserved quantity is no longer on the recorded warehouse', code: 'RESERVED_STOCK_MISSING' });
+    }
+  }
+  /**
+   * Adds quantity once to the warehouse stored on the invoice.
+   */
+  async restockRecordedStock(input: { readonly productId: number; readonly warehouseId: number; readonly quantity: number }, context: TransactionContext): Promise<void> {
+    const restocked = await this.productStockRepository.restock(input, context);
+    if (!restocked) {
+      throw new InvalidStateException({ message: 'The warehouse stored on the invoice no longer holds this product', code: 'STOCK_WAREHOUSE_MISSING' });
     }
   }
   /**
@@ -259,4 +297,12 @@ export class ProductService {
   private async assertWarehousesExist(stocks: readonly ProductStockSelection[]): Promise<void> {
     await Promise.all(stocks.map(async (stock) => this.warehouseService.getWarehouseById(stock.warehouseId)));
   }
+}
+
+function readStockQuantity(product: ProductEntity, warehouseId: number): number {
+  const stock = product.stocks?.find((item) => item.warehouseId === warehouseId);
+  if (!stock) {
+    throw new ResourceNotFoundException('Product stock', `${product.id}:${warehouseId}`);
+  }
+  return stock.quantity;
 }

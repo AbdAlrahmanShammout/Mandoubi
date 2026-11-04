@@ -3,6 +3,9 @@ import { TransactionRunner } from '@/common/base/transaction-runner';
 import { InvalidStateException } from '@/common/exceptions/invalid-state.exception';
 import { ResourceNotFoundException } from '@/common/exceptions/resource-not-found.exception';
 import { InvoiceService } from '@/modules/invoice/invoice.service';
+import { NotificationAudience } from '@/modules/notification/enum/notification-audience.enum';
+import { NotificationKind } from '@/modules/notification/enum/notification-kind.enum';
+import { NotificationService } from '@/modules/notification/notification.service';
 import { OrderEntity } from '@/modules/order/entity/order.entity';
 import { OrderLineInput, OrderableProduct, prepareOrderInvoices } from '@/modules/order/helpers/prepare-order-invoices.helper';
 import { OrderRepository } from '@/modules/order/repository/order.repository';
@@ -26,6 +29,7 @@ export class OrderService {
     private readonly orderRepository: OrderRepository,
     private readonly invoiceService: InvoiceService,
     private readonly productService: ProductService,
+    private readonly notificationService: NotificationService,
     private readonly transactionRunner: TransactionRunner,
   ) {}
   /**
@@ -39,6 +43,15 @@ export class OrderService {
       for (const invoice of prepared) {
         await this.invoiceService.createInvoice({ orderId: order.id, category: invoice.category, items: invoice.items }, context);
       }
+      await this.notificationService.notify({
+        audience: NotificationAudience.ADMIN,
+        audienceId: null,
+        kind: NotificationKind.ORDER_SUBMITTED,
+        title: 'New order',
+        body: `Order ${order.id} was submitted`,
+        resourceType: 'order',
+        resourceId: order.id,
+      }, context);
       return order.id;
     });
     return this.getOrderById(orderId);

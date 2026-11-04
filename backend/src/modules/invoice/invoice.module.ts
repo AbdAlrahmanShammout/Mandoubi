@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { AuditModule } from '@/modules/audit/audit.module';
+import { NotificationModule } from '@/modules/notification/notification.module';
 import { InvoicePrismaRepository } from '@/modules/invoice/repository/invoice-prisma.repository';
 import { InvoiceRepository } from '@/modules/invoice/repository/invoice.repository';
 import { InvoiceService } from '@/modules/invoice/invoice.service';
@@ -10,7 +12,7 @@ import { DatabaseProviderModule } from '@/providers/database/database-provider.m
  * Category invoices. Controllers are registered by audience modules.
  */
 @Module({
-  imports: [DatabaseProviderModule, ProductModule, RejectionReasonModule],
+  imports: [AuditModule, DatabaseProviderModule, NotificationModule, ProductModule, RejectionReasonModule],
   providers: [InvoiceService, { provide: InvoiceRepository, useClass: InvoicePrismaRepository }],
   exports: [InvoiceService],
 })

@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { AuditModule } from '@/modules/audit/audit.module';
+import { NotificationModule } from '@/modules/notification/notification.module';
 import { DeliveryPrismaRepository } from '@/modules/delivery/repository/delivery-prisma.repository';
 import { DeliveryRepository } from '@/modules/delivery/repository/delivery.repository';
 import { DeliveryService } from '@/modules/delivery/delivery.service';
@@ -13,7 +15,7 @@ import { DatabaseProviderModule } from '@/providers/database/database-provider.m
  * Invoice assignments and append-only delivery results. Controllers are registered by audience modules.
  */
 @Module({
-  imports: [DatabaseProviderModule, DriverModule, InvoiceModule, PaymentModule, ProductModule, UserModule],
+  imports: [AuditModule, DatabaseProviderModule, DriverModule, InvoiceModule, NotificationModule, PaymentModule, ProductModule, UserModule],
   providers: [DeliveryService, { provide: DeliveryRepository, useClass: DeliveryPrismaRepository }],
   exports: [DeliveryService],
 })

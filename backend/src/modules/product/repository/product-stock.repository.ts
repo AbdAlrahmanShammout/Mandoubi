@@ -20,4 +20,8 @@ export abstract class ProductStockRepository {
   abstract reserve(input: ReserveProductStockRepoInput, context?: TransactionContext): Promise<boolean>;
   /** Turns reserved quantity into issued quantity. Available stock stays the same. */
   abstract issue(input: ReserveProductStockRepoInput, context?: TransactionContext): Promise<boolean>;
+  /** Releases a reservation without changing physical quantity. */
+  abstract release(input: ReserveProductStockRepoInput, context?: TransactionContext): Promise<boolean>;
+  /** Adds returned physical quantity once. The reservation is left unchanged. */
+  abstract restock(input: ReserveProductStockRepoInput, context?: TransactionContext): Promise<boolean>;
 }

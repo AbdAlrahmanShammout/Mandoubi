@@ -75,6 +75,7 @@ model User {
   pharmacy             Pharmacy?            @relation(fields: [pharmacyId], references: [id])
   driver               Driver?              @relation(fields: [driverId], references: [id])
   deliveryAssignments  DeliveryAssignment[]
+  auditEntries         AuditEntry[]
   createdAt    DateTime      @default(now()) @map("created_at")
   updatedAt    DateTime      @updatedAt @map("updated_at")
   deletedAt    DateTime?     @map("deleted_at")
@@ -206,6 +207,8 @@ enum InvoiceStatus {
   DELIVERED_PAID
   DELIVERED_UNPAID
   NOT_DELIVERED
+  RETURNED_TO_WAREHOUSE
+  OUT_FOR_DELIVERY
 }
 
 enum DeliveryResult {
@@ -254,6 +257,7 @@ model Invoice {
   items              InvoiceItem[]
   assignment         DeliveryAssignment?
   allocations        PaymentAllocation[]
+  returnRecord       ReturnRecord?
   createdAt          DateTime         @default(now()) @map("created_at")
   updatedAt          DateTime         @updatedAt @map("updated_at")
 
@@ -400,4 +404,69 @@ model DriverSettlementLine {
 
   @@index([settlementId])
   @@map("driver_settlement_lines")
+}
+
+/// One row per invoice. A second return cannot add the same quantity again.
+model ReturnRecord {
+  id        Int      @id @default(autoincrement())
+  invoiceId Int      @unique @map("invoice_id")
+  invoice   Invoice  @relation(fields: [invoiceId], references: [id])
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("return_records")
+}
+
+enum NotificationAudience {
+  ADMIN
+  PHARMACY
+  DRIVER
+}
+
+enum NotificationKind {
+  ORDER_SUBMITTED
+  INVOICE_APPROVED
+  INVOICE_REJECTED
+  INVOICE_ASSIGNED
+  DELIVERY_UPDATED
+  PAYMENT_RECORDED
+  AMOUNT_DUE
+}
+
+model Notification {
+  id           Int                    @id @default(autoincrement())
+  audience     NotificationAudience
+  audienceId   Int?                   @map("audience_id")
+  kind         NotificationKind
+  title        String
+  body         String
+  resourceType String                 @map("resource_type")
+  resourceId   Int                    @map("resource_id")
+  readAt       DateTime?              @map("read_at")
+  createdAt    DateTime               @default(now()) @map("created_at")
+  updatedAt    DateTime               @updatedAt @map("updated_at")
+
+  @@index([audience, audienceId])
+  @@map("notifications")
+}
+
+enum AuditAction {
+  STOCK_QUANTITY_CHANGED
+  INVOICE_STATUS_CHANGED
+  PAYMENT_RECORDED
+}
+
+/// Append-only. Rows are inserted with the change they describe and are not updated.
+model AuditEntry {
+  id           Int         @id @default(autoincrement())
+  actorUserId  Int         @map("actor_user_id")
+  actor        User        @relation(fields: [actorUserId], references: [id])
+  action       AuditAction
+  resourceType String      @map("resource_type")
+  resourceId   String      @map("resource_id")
+  detail       Json
+  createdAt    DateTime    @default(now()) @map("created_at")
+
+  @@index([resourceType, resourceId])
+  @@map("audit_entries")
 }
