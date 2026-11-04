@@ -1,0 +1,13 @@
+/**
+ * Transport-neutral classification of an application error.
+ */
+export enum ErrorKind {
+  VALIDATION = 'VALIDATION',
+  NOT_FOUND = 'NOT_FOUND',
+  CONFLICT = 'CONFLICT',
+  INVALID_STATE = 'INVALID_STATE',
+  UNAUTHENTICATED = 'UNAUTHENTICATED',
+  ACCESS_DENIED = 'ACCESS_DENIED',
+  DEPENDENCY_FAILURE = 'DEPENDENCY_FAILURE',
+  INTERNAL = 'INTERNAL',
+}
