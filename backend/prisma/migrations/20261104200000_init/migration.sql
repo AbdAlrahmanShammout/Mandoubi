@@ -1,0 +1,1 @@
+-- Platform skeleton. Domain tables are added with the modules that own them.
