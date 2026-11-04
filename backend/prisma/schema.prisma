@@ -29,6 +29,7 @@ model Pharmacy {
   deletedAt    DateTime?     @map("deleted_at")
   user         User?
   sessions     PharmacySession[]
+  orders       Order[]
 
   @@map("pharmacies")
 }
@@ -131,8 +132,9 @@ model Warehouse {
   address   String
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
-  stocks    ProductStock[]
+  deletedAt    DateTime?      @map("deleted_at")
+  stocks       ProductStock[]
+  invoiceItems InvoiceItem[]
 
   @@map("warehouses")
 }
@@ -167,6 +169,7 @@ model Product {
   updatedAt            DateTime            @updatedAt @map("updated_at")
   deletedAt            DateTime?           @map("deleted_at")
   stocks               ProductStock[]
+  invoiceItems         InvoiceItem[]
 
   @@map("products")
 }
@@ -186,4 +189,63 @@ model ProductStock {
   @@unique([productId, warehouseId])
   @@index([warehouseId])
   @@map("product_stocks")
+}
+
+enum InvoiceStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Order {
+  id         Int       @id @default(autoincrement())
+  pharmacyId Int       @map("pharmacy_id")
+  pharmacy   Pharmacy  @relation(fields: [pharmacyId], references: [id])
+  invoices   Invoice[]
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  @@index([pharmacyId])
+  @@map("orders")
+}
+
+model Invoice {
+  id        Int             @id @default(autoincrement())
+  orderId   Int             @map("order_id")
+  order     Order           @relation(fields: [orderId], references: [id])
+  category  ProductCategory
+  status    InvoiceStatus   @default(PENDING)
+  items     InvoiceItem[]
+  createdAt DateTime        @default(now()) @map("created_at")
+  updatedAt DateTime        @updatedAt @map("updated_at")
+
+  @@index([orderId])
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id                 Int             @id @default(autoincrement())
+  invoiceId          Int             @map("invoice_id")
+  invoice            Invoice         @relation(fields: [invoiceId], references: [id])
+  productId          Int             @map("product_id")
+  product            Product         @relation(fields: [productId], references: [id])
+  productName        String          @map("product_name")
+  barcode            String
+  saleUnit           SaleUnit        @map("sale_unit")
+  paidQuantity       Int             @map("paid_quantity")
+  freeQuantity       Int             @map("free_quantity")
+  totalQuantity      Int             @map("total_quantity")
+  unitPrice          Decimal         @map("unit_price") @db.Decimal(18, 2)
+  consumerUnitPrice  Decimal         @map("consumer_unit_price") @db.Decimal(18, 2)
+  currency           InvoiceCurrency
+  lineAmount         Decimal         @map("line_amount") @db.Decimal(18, 2)
+  primaryWarehouseId Int             @map("primary_warehouse_id")
+  primaryWarehouse   Warehouse       @relation(fields: [primaryWarehouseId], references: [id])
+  offerPaidUnits     Int?            @map("offer_paid_units")
+  offerFreeUnits     Int?            @map("offer_free_units")
+  createdAt          DateTime        @default(now()) @map("created_at")
+  updatedAt          DateTime        @updatedAt @map("updated_at")
+
+  @@index([invoiceId])
+  @@map("invoice_items")
 }

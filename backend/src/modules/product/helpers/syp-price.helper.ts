@@ -15,3 +15,18 @@ export function calculateSypPrice(usdAmount: string, usdToSyp: string): string {
 export function formatMoney(value: Prisma.Decimal): string {
   return value.toDecimalPlaces(PRICE_SCALE, Prisma.Decimal.ROUND_HALF_UP).toFixed(PRICE_SCALE);
 }
+
+/**
+ * Multiplies a unit price by a quantity and rounds to cents.
+ */
+export function multiplyMoney(unitPrice: string, quantity: number): string {
+  return new Prisma.Decimal(unitPrice).mul(quantity).toDecimalPlaces(PRICE_SCALE, Prisma.Decimal.ROUND_HALF_UP).toFixed(PRICE_SCALE);
+}
+
+/**
+ * Adds money amounts that already use two fraction digits.
+ */
+export function sumMoney(amounts: readonly string[]): string {
+  const total = amounts.reduce((sum, amount) => sum.add(amount), new Prisma.Decimal(0));
+  return total.toDecimalPlaces(PRICE_SCALE, Prisma.Decimal.ROUND_HALF_UP).toFixed(PRICE_SCALE);
+}
