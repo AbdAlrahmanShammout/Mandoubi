@@ -1,5 +1,7 @@
 import { Global, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { AdminConfigService } from '@/config/admin/admin-config.service';
+import adminConfigs from '@/config/admin/admin-configs';
 import { AppConfigService } from '@/config/app/app-config.service';
 import appConfigs from '@/config/app/app-configs';
 import { DatabaseConfigService } from '@/config/database/database-config.service';
@@ -20,11 +22,11 @@ import { validateEnvironment } from '@/config/validate-environment';
       isGlobal: true,
       cache: true,
       envFilePath: ['.env'],
-      load: [...appConfigs, ...databaseConfigs, ...jwtConfigs, ...swaggerConfigs],
+      load: [...appConfigs, ...adminConfigs, ...databaseConfigs, ...jwtConfigs, ...swaggerConfigs],
       validate: validateEnvironment,
     }),
   ],
-  providers: [AppConfigService, DatabaseConfigService, JwtConfigService, SwaggerConfigService],
-  exports: [AppConfigService, DatabaseConfigService, JwtConfigService, SwaggerConfigService],
+  providers: [AdminConfigService, AppConfigService, DatabaseConfigService, JwtConfigService, SwaggerConfigService],
+  exports: [AdminConfigService, AppConfigService, DatabaseConfigService, JwtConfigService, SwaggerConfigService],
 })
 export class ConfigsModule {}

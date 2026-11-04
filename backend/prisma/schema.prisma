@@ -6,3 +6,58 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+enum AccountRole {
+  ADMIN
+  PHARMACY
+  DRIVER
+}
+
+enum AccountStatus {
+  ACTIVE
+  DISABLED
+}
+
+model Pharmacy {
+  id           Int           @id @default(autoincrement())
+  name         String
+  mobileNumber String        @unique @map("mobile_number")
+  address      String
+  status       AccountStatus @default(ACTIVE)
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  deletedAt    DateTime?     @map("deleted_at")
+  user         User?
+
+  @@map("pharmacies")
+}
+
+model Driver {
+  id           Int           @id @default(autoincrement())
+  name         String
+  mobileNumber String        @unique @map("mobile_number")
+  status       AccountStatus @default(ACTIVE)
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  deletedAt    DateTime?     @map("deleted_at")
+  user         User?
+
+  @@map("drivers")
+}
+
+model User {
+  id           Int           @id @default(autoincrement())
+  role         AccountRole
+  mobileNumber String        @unique @map("mobile_number")
+  passwordHash String        @map("password_hash")
+  status       AccountStatus @default(ACTIVE)
+  pharmacyId   Int?          @unique @map("pharmacy_id")
+  driverId     Int?          @unique @map("driver_id")
+  pharmacy     Pharmacy?     @relation(fields: [pharmacyId], references: [id])
+  driver       Driver?       @relation(fields: [driverId], references: [id])
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  deletedAt    DateTime?     @map("deleted_at")
+
+  @@map("users")
+}

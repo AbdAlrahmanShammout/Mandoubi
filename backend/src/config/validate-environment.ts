@@ -1,22 +1,25 @@
 import Joi from 'joi';
+import { adminConfigSchema } from '@/config/admin/admin-config.schema';
 import { appConfigSchema } from '@/config/app/app-config.schema';
 import { databaseConfigSchema } from '@/config/database/database-config.schema';
 import { jwtConfigSchema } from '@/config/jwt/jwt-config.schema';
 import { swaggerConfigSchema } from '@/config/swagger/swagger-config.schema';
 
 const environmentSchema = Joi.object({
+  ...adminConfigSchema,
   ...appConfigSchema,
   ...databaseConfigSchema,
   ...jwtConfigSchema,
   ...swaggerConfigSchema,
 });
 const DECLARED_KEYS = new Set<string>([
+  ...Object.keys(adminConfigSchema),
   ...Object.keys(appConfigSchema),
   ...Object.keys(databaseConfigSchema),
   ...Object.keys(jwtConfigSchema),
   ...Object.keys(swaggerConfigSchema),
 ]);
-const APPLICATION_KEY_PATTERN = /^(APP_|DATABASE_|JWT_|SWAGGER_)/;
+const APPLICATION_KEY_PATTERN = /^(ADMIN_|APP_|DATABASE_|JWT_|SWAGGER_)/;
 
 /**
  * Validates declared application variables and rejects typos in those prefixes.
