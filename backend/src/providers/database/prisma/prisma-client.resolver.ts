@@ -22,6 +22,16 @@ export function resolvePrismaClient(prisma: PrismaProviderService, context?: Tra
 }
 
 /**
+ * Turns a unique-constraint failure into the conflict the caller describes.
+ */
+export function rethrowConflict(error: unknown, conflict: ConflictException): never {
+  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+    throw conflict;
+  }
+  throw error;
+}
+
+/**
  * Turns a unique-constraint failure into a mobile-number conflict.
  */
 export function rethrowUniqueViolation(error: unknown): never {
