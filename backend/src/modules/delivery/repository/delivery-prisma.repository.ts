@@ -44,6 +44,11 @@ export class DeliveryPrismaRepository extends DeliveryRepository {
     });
     return results.map((result) => DeliveryAssignmentMapper.toEntity(result));
   }
+  /** Lists every assignment given to one driver, oldest first. */
+  async listByDriverId(driverId: number): Promise<DeliveryAssignmentEntity[]> {
+    const results = await this.prisma.deliveryAssignment.findMany({ where: { driverId }, include: deliveryAssignmentInclude, orderBy: { id: 'asc' } });
+    return results.map((result) => DeliveryAssignmentMapper.toEntity(result));
+  }
   /** Inserts one event and does not update older events. */
   async appendEvent(input: CreateDeliveryEventRepoInput, context?: TransactionContext): Promise<DeliveryEventEntity> {
     const client = resolvePrismaClient(this.prisma, context);

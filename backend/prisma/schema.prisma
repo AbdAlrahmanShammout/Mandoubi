@@ -30,6 +30,7 @@ model Pharmacy {
   user         User?
   sessions     PharmacySession[]
   orders       Order[]
+  payments     Payment[]
 
   @@map("pharmacies")
 }
@@ -57,6 +58,8 @@ model Driver {
   deletedAt    DateTime?            @map("deleted_at")
   user         User?
   assignments  DeliveryAssignment[]
+  payments     Payment[]
+  settlements  DriverSettlement[]
 
   @@map("drivers")
 }
@@ -250,6 +253,7 @@ model Invoice {
   customReason       String?              @map("custom_reason") @db.VarChar(500)
   items              InvoiceItem[]
   assignment         DeliveryAssignment?
+  allocations        PaymentAllocation[]
   createdAt          DateTime         @default(now()) @map("created_at")
   updatedAt          DateTime         @updatedAt @map("updated_at")
 
@@ -318,4 +322,82 @@ model DeliveryEvent {
   @@index([assignmentId])
   @@index([invoiceId])
   @@map("delivery_events")
+}
+
+enum PaymentKind {
+  RECEIPT
+  DRIVER_COLLECTION
+}
+
+enum PaymentMethod {
+  CASH
+  BANK_TRANSFER
+}
+
+model Payment {
+  id             Int              @id @default(autoincrement())
+  pharmacyId     Int              @map("pharmacy_id")
+  pharmacy       Pharmacy         @relation(fields: [pharmacyId], references: [id])
+  kind           PaymentKind
+  currency       InvoiceCurrency
+  amount         Decimal          @db.Decimal(18, 2)
+  receivedByName String           @map("received_by_name")
+  paymentMethod  PaymentMethod    @default(CASH) @map("payment_method")
+  driverId       Int?             @map("driver_id")
+  driver         Driver?          @relation(fields: [driverId], references: [id], onDelete: Restrict)
+  occurredAt     DateTime         @map("occurred_at")
+  allocations    PaymentAllocation[]
+  settlementLine DriverSettlementLine?
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+
+  @@index([pharmacyId])
+  @@index([driverId])
+  @@map("payments")
+}
+
+/// One row covers the whole amount of an invoice in one currency.
+model PaymentAllocation {
+  id        Int             @id @default(autoincrement())
+  paymentId Int             @map("payment_id")
+  payment   Payment         @relation(fields: [paymentId], references: [id])
+  invoiceId Int             @map("invoice_id")
+  invoice   Invoice         @relation(fields: [invoiceId], references: [id])
+  amount    Decimal         @db.Decimal(18, 2)
+  currency  InvoiceCurrency
+  createdAt DateTime        @default(now()) @map("created_at")
+  updatedAt DateTime        @updatedAt @map("updated_at")
+
+  @@unique([invoiceId, currency])
+  @@index([paymentId])
+  @@map("payment_allocations")
+}
+
+model DriverSettlement {
+  id             Int                    @id @default(autoincrement())
+  driverId       Int                    @map("driver_id")
+  driver         Driver                 @relation(fields: [driverId], references: [id])
+  currency       InvoiceCurrency
+  amount         Decimal                @db.Decimal(18, 2)
+  receivedByName String                 @map("received_by_name")
+  occurredAt     DateTime               @map("occurred_at")
+  lines          DriverSettlementLine[]
+  createdAt      DateTime               @default(now()) @map("created_at")
+  updatedAt      DateTime               @updatedAt @map("updated_at")
+
+  @@index([driverId])
+  @@map("driver_settlements")
+}
+
+model DriverSettlementLine {
+  id           Int              @id @default(autoincrement())
+  settlementId Int              @map("settlement_id")
+  settlement   DriverSettlement @relation(fields: [settlementId], references: [id])
+  paymentId    Int              @unique @map("payment_id")
+  payment      Payment          @relation(fields: [paymentId], references: [id])
+  createdAt    DateTime         @default(now()) @map("created_at")
+  updatedAt    DateTime         @updatedAt @map("updated_at")
+
+  @@index([settlementId])
+  @@map("driver_settlement_lines")
 }

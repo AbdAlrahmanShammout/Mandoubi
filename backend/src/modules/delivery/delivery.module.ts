@@ -4,6 +4,7 @@ import { DeliveryRepository } from '@/modules/delivery/repository/delivery.repos
 import { DeliveryService } from '@/modules/delivery/delivery.service';
 import { DriverModule } from '@/modules/driver/driver.module';
 import { InvoiceModule } from '@/modules/invoice/invoice.module';
+import { PaymentModule } from '@/modules/payment/payment.module';
 import { ProductModule } from '@/modules/product/product.module';
 import { UserModule } from '@/modules/user/user.module';
 import { DatabaseProviderModule } from '@/providers/database/database-provider.module';
@@ -12,7 +13,7 @@ import { DatabaseProviderModule } from '@/providers/database/database-provider.m
  * Invoice assignments and append-only delivery results. Controllers are registered by audience modules.
  */
 @Module({
-  imports: [DatabaseProviderModule, DriverModule, InvoiceModule, ProductModule, UserModule],
+  imports: [DatabaseProviderModule, DriverModule, InvoiceModule, PaymentModule, ProductModule, UserModule],
   providers: [DeliveryService, { provide: DeliveryRepository, useClass: DeliveryPrismaRepository }],
   exports: [DeliveryService],
 })

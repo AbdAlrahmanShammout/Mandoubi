@@ -13,6 +13,8 @@ export abstract class DeliveryRepository {
   abstract findByInvoiceId(invoiceId: number, context?: TransactionContext): Promise<DeliveryAssignmentEntity | null>;
   /** Lists invoices still assigned to one driver. */
   abstract listOpenByDriverId(driverId: number): Promise<DeliveryAssignmentEntity[]>;
+  /** Lists every assignment given to one driver. */
+  abstract listByDriverId(driverId: number): Promise<DeliveryAssignmentEntity[]>;
   /** Inserts one delivery result. Existing rows stay unchanged. */
   abstract appendEvent(input: CreateDeliveryEventRepoInput, context?: TransactionContext): Promise<DeliveryEventEntity>;
 }

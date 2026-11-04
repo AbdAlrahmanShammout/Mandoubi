@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { TransactionContext } from '@/common/base/transaction-context';
 import { TransactionRunner } from '@/common/base/transaction-runner';
+import { InternalException } from '@/common/exceptions/internal.exception';
 import { InvalidStateException } from '@/common/exceptions/invalid-state.exception';
 import { ResourceNotFoundException } from '@/common/exceptions/resource-not-found.exception';
 import { DeliveryResultSelection, ResolvedDeliveryResult, resolveDeliveryResult } from '@/modules/delivery/helpers/resolve-delivery-result.helper';
@@ -13,6 +14,7 @@ import { InvoiceEntity } from '@/modules/invoice/entity/invoice.entity';
 import { InvoiceItemEntity } from '@/modules/invoice/entity/invoice-item.entity';
 import { InvoiceStatus } from '@/modules/invoice/enum/invoice-status.enum';
 import { InvoiceService } from '@/modules/invoice/invoice.service';
+import { PaymentService } from '@/modules/payment/payment.service';
 import { ProductService } from '@/modules/product/product.service';
 import { AccountStatus } from '@/modules/user/enum/account-status.enum';
 
@@ -51,6 +53,7 @@ export class DeliveryService {
     private readonly invoiceService: InvoiceService,
     private readonly driverService: DriverService,
     private readonly productService: ProductService,
+    private readonly paymentService: PaymentService,
     private readonly transactionRunner: TransactionRunner,
   ) {}
   /**
@@ -73,10 +76,17 @@ export class DeliveryService {
     return this.deliveryRepository.listOpenByDriverId(driverId);
   }
   /**
+   * Lists every invoice assigned to one driver, including finished ones.
+   */
+  async listForDriver(driverId: number): Promise<DeliveryAssignmentEntity[]> {
+    return this.deliveryRepository.listByDriverId(driverId);
+  }
+  /**
    * Records one result. A delivered invoice issues its reserved quantity without reducing available stock again.
    */
   async recordResult(input: RecordDeliveryInput): Promise<RecordedDelivery> {
     const resolved = resolveDeliveryResult(input);
+    const driver = await this.driverService.getDriverById(input.driverId);
     return this.transactionRunner.run(async (context) => {
       const assignment = await this.deliveryRepository.findByInvoiceId(input.invoiceId, context);
       if (!assignment || assignment.driverId !== input.driverId) {
@@ -91,6 +101,7 @@ export class DeliveryService {
         ...resolved,
       }, context);
       await this.issueDeliveredStock(invoice, resolved, context);
+      await this.recordCollection(assignment, driver.name, invoice, resolved, event.occurredAt, context);
       return { event, invoiceStatus: invoice.status };
     });
   }
@@ -101,6 +112,21 @@ export class DeliveryService {
     for (const item of requireItems(invoice)) {
       await this.productService.issueRecordedStock({ productId: item.productId, warehouseId: item.primaryWarehouseId, quantity: item.totalQuantity }, context);
     }
+  }
+  private async recordCollection(assignment: DeliveryAssignmentEntity, driverName: string, invoice: InvoiceEntity, resolved: ResolvedDeliveryResult, occurredAt: Date, context: TransactionContext): Promise<void> {
+    if (resolved.result !== DeliveryResult.DELIVERED_PAID) {
+      return;
+    }
+    if (!assignment.pharmacy) {
+      throw new InternalException('The pharmacy to visit was not loaded');
+    }
+    await this.paymentService.recordDriverCollection({
+      pharmacyId: assignment.pharmacy.id,
+      driverId: assignment.driverId,
+      driverName,
+      invoice,
+      occurredAt,
+    }, context);
   }
 }
 

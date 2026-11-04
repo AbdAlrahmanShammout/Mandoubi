@@ -30,3 +30,17 @@ export function sumMoney(amounts: readonly string[]): string {
   const total = amounts.reduce((sum, amount) => sum.add(amount), new Prisma.Decimal(0));
   return total.toDecimalPlaces(PRICE_SCALE, Prisma.Decimal.ROUND_HALF_UP).toFixed(PRICE_SCALE);
 }
+
+/**
+ * Subtracts one money amount from another and rounds to cents.
+ */
+export function subtractMoney(left: string, right: string): string {
+  return new Prisma.Decimal(left).sub(right).toDecimalPlaces(PRICE_SCALE, Prisma.Decimal.ROUND_HALF_UP).toFixed(PRICE_SCALE);
+}
+
+/**
+ * Compares two money amounts by value, ignoring trailing zeros.
+ */
+export function moneyEquals(left: string, right: string): boolean {
+  return new Prisma.Decimal(left).equals(new Prisma.Decimal(right));
+}
