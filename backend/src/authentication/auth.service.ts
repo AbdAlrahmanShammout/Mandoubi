@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { comparePassword, hashPassword } from '@/common/helpers/password.helper';
 import { UnauthenticatedException } from '@/common/exceptions/unauthenticated.exception';
 import { SignInInput } from '@/authentication/types/sign-in.input';
+import { PharmacySessionService } from '@/modules/pharmacy/pharmacy-session.service';
 import { AccountRole } from '@/modules/user/enum/account-role.enum';
 import { AccountStatus } from '@/modules/user/enum/account-status.enum';
 import { UserService } from '@/modules/user/user.service';
@@ -16,6 +17,7 @@ const INVALID_CREDENTIALS_MESSAGE = 'The mobile number or password is incorrect'
 export class AuthService {
   constructor(
     private readonly userService: UserService,
+    private readonly pharmacySessionService: PharmacySessionService,
     private readonly jwtTokenService: JwtTokenService,
   ) {}
   /**
@@ -30,6 +32,18 @@ export class AuthService {
    */
   async signInDriver(input: SignInInput): Promise<string> {
     return this.signInForRole(input, AccountRole.DRIVER);
+  }
+  /**
+   * Signs in a pharmacy and replaces its previous server session.
+   */
+  async signInPharmacy(input: SignInInput): Promise<string> {
+    const user = await this.userService.findUserByMobileNumber(input.mobileNumber);
+    const passwordMatches = user ? await comparePassword(input.password, user.passwordHash) : await this.burnPasswordWork(input.password);
+    if (!user || !passwordMatches || user.status !== AccountStatus.ACTIVE || user.role !== AccountRole.PHARMACY || user.pharmacyId === null) {
+      throw new UnauthenticatedException(INVALID_CREDENTIALS_MESSAGE);
+    }
+    const session = await this.pharmacySessionService.openSession(user.pharmacyId);
+    return this.jwtTokenService.signAccessToken({ userId: user.id, role: user.role, sessionId: session.id });
   }
   private async signInForRole(input: SignInInput, role: AccountRole): Promise<string> {
     const user = await this.userService.findUserByMobileNumber(input.mobileNumber);

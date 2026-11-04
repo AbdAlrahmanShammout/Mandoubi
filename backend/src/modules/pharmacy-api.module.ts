@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { AuthModule } from '@/authentication/auth.module';
+import { PharmacyAuthController } from '@/authentication/pharmacy-auth.controller';
 import { RolesGuard } from '@/common/guards/roles.guard';
+import { PharmacySessionGuard } from '@/modules/pharmacy/guards/pharmacy-session.guard';
 import { PharmacyModule } from '@/modules/pharmacy/pharmacy.module';
 import { JwtAuthGuard } from '@/modules/user/guards/jwt-auth.guard';
 import { UserModule } from '@/modules/user/user.module';
@@ -11,6 +13,7 @@ import { JwtProviderModule } from '@/providers/jwt/jwt-provider.module';
  */
 @Module({
   imports: [AuthModule, JwtProviderModule, PharmacyModule, UserModule],
-  providers: [JwtAuthGuard, RolesGuard],
+  controllers: [PharmacyAuthController],
+  providers: [JwtAuthGuard, PharmacySessionGuard, RolesGuard],
 })
 export class PharmacyApiModule {}

@@ -28,8 +28,22 @@ model Pharmacy {
   updatedAt    DateTime      @updatedAt @map("updated_at")
   deletedAt    DateTime?     @map("deleted_at")
   user         User?
+  sessions     PharmacySession[]
 
   @@map("pharmacies")
+}
+
+/// One active row per pharmacy is enforced by a partial unique index in the migration.
+model PharmacySession {
+  id         Int       @id @default(autoincrement())
+  pharmacyId Int       @map("pharmacy_id")
+  pharmacy   Pharmacy  @relation(fields: [pharmacyId], references: [id])
+  revokedAt  DateTime? @map("revoked_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  @@index([pharmacyId])
+  @@map("pharmacy_sessions")
 }
 
 model Driver {
