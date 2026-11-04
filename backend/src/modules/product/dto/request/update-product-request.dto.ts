@@ -1,5 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsInt, IsOptional, IsString, MaxLength, Min, MinLength, ValidateIf } from 'class-validator';
+import { IsBoolean, IsEnum, IsInt, IsOptional, IsString, Matches, MaxLength, Min, MinLength, ValidateIf } from 'class-validator';
+import { MONEY_PATTERN } from '@/modules/product/constants/money.constant';
+import { InvoiceCurrency } from '@/modules/product/enum/invoice-currency.enum';
 import { ProductAvailability } from '@/modules/product/enum/product-availability.enum';
 import { ProductStatus } from '@/modules/product/enum/product-status.enum';
 
@@ -59,4 +61,32 @@ export class UpdateProductRequestDto {
   @IsOptional()
   @IsEnum(ProductStatus)
   status?: ProductStatus;
+  @ApiPropertyOptional({ description: 'Pharmacy selling price in US dollars', example: '2.50' })
+  @IsOptional()
+  @IsString()
+  @Matches(MONEY_PATTERN)
+  pharmacyPriceUsd?: string;
+  @ApiPropertyOptional({ description: 'Pharmacy selling price in Syrian pounds', example: '40000' })
+  @IsOptional()
+  @IsString()
+  @Matches(MONEY_PATTERN)
+  pharmacyPriceSyp?: string;
+  @ApiPropertyOptional({ description: 'Suggested consumer price in US dollars', example: '3.00' })
+  @IsOptional()
+  @IsString()
+  @Matches(MONEY_PATTERN)
+  consumerPriceUsd?: string;
+  @ApiPropertyOptional({ description: 'Suggested consumer price in Syrian pounds', example: '50000' })
+  @IsOptional()
+  @IsString()
+  @Matches(MONEY_PATTERN)
+  consumerPriceSyp?: string;
+  @ApiPropertyOptional({ description: 'Calculate Syrian-pound prices from the exchange rate', example: true })
+  @IsOptional()
+  @IsBoolean()
+  calculateSypFromRate?: boolean;
+  @ApiPropertyOptional({ description: 'Currency recorded on invoices', enum: InvoiceCurrency, example: InvoiceCurrency.SYP })
+  @IsOptional()
+  @IsEnum(InvoiceCurrency)
+  invoiceCurrency?: InvoiceCurrency;
 }

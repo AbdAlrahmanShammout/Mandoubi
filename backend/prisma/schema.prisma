@@ -86,6 +86,21 @@ enum ProductAvailability {
   UNAVAILABLE
 }
 
+enum InvoiceCurrency {
+  USD
+  SYP
+}
+
+/// The single USD to Syrian-pound rate. The row id is fixed at 1.
+model ExchangeRate {
+  id        Int      @id
+  usdToSyp  Decimal  @map("usd_to_syp") @db.Decimal(18, 4)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("exchange_rates")
+}
+
 model Manufacturer {
   id        Int          @id @default(autoincrement())
   name      String       @unique
@@ -121,6 +136,12 @@ model Product {
   minimumOrderQuantity Int                 @map("minimum_order_quantity")
   maximumOrderQuantity Int                 @map("maximum_order_quantity")
   lowQuantityThreshold Int                 @map("low_quantity_threshold")
+  pharmacyPriceUsd     Decimal             @map("pharmacy_price_usd") @db.Decimal(18, 2)
+  pharmacyPriceSyp     Decimal             @map("pharmacy_price_syp") @db.Decimal(18, 2)
+  consumerPriceUsd     Decimal             @map("consumer_price_usd") @db.Decimal(18, 2)
+  consumerPriceSyp     Decimal             @map("consumer_price_syp") @db.Decimal(18, 2)
+  calculateSypFromRate Boolean             @default(false) @map("calculate_syp_from_rate")
+  invoiceCurrency      InvoiceCurrency     @default(SYP) @map("invoice_currency")
   availability         ProductAvailability @default(AVAILABLE)
   status               RecordStatus        @default(ACTIVE)
   createdAt            DateTime            @default(now()) @map("created_at")

@@ -8,6 +8,7 @@ import { CreateProductRepoInput, UpdateProductRepoInput } from '@/modules/produc
 import { ProductEntity } from '@/modules/product/entity/product.entity';
 import { ProductMapper } from '@/modules/product/mapper/product.mapper';
 import { ProductRepository } from '@/modules/product/repository/product.repository';
+import { calculateSypPrice } from '@/modules/product/helpers/syp-price.helper';
 import { productDetailsInclude } from '@/modules/product/types/product-details.include';
 
 /**
@@ -32,6 +33,12 @@ export class ProductPrismaRepository extends ProductRepository {
           minimumOrderQuantity: input.minimumOrderQuantity,
           maximumOrderQuantity: input.maximumOrderQuantity,
           lowQuantityThreshold: input.lowQuantityThreshold,
+          pharmacyPriceUsd: new Prisma.Decimal(input.pharmacyPriceUsd),
+          pharmacyPriceSyp: new Prisma.Decimal(input.pharmacyPriceSyp),
+          consumerPriceUsd: new Prisma.Decimal(input.consumerPriceUsd),
+          consumerPriceSyp: new Prisma.Decimal(input.consumerPriceSyp),
+          calculateSypFromRate: input.calculateSypFromRate,
+          invoiceCurrency: input.invoiceCurrency,
           availability: input.availability,
           status: input.status,
           stocks: {
@@ -78,6 +85,7 @@ export class ProductPrismaRepository extends ProductRepository {
           ...(input.minimumOrderQuantity !== undefined ? { minimumOrderQuantity: input.minimumOrderQuantity } : {}),
           ...(input.maximumOrderQuantity !== undefined ? { maximumOrderQuantity: input.maximumOrderQuantity } : {}),
           ...(input.lowQuantityThreshold !== undefined ? { lowQuantityThreshold: input.lowQuantityThreshold } : {}),
+          ...priceColumns(input),
           ...(input.availability !== undefined ? { availability: input.availability } : {}),
           ...(input.status !== undefined ? { status: input.status } : {}),
         },
@@ -91,6 +99,41 @@ export class ProductPrismaRepository extends ProductRepository {
       rethrowConflict(error, conflictForProduct(error));
     }
   }
+  /** Rewrites Syrian-pound prices from the dollar prices and the supplied rate. */
+  async recalculateSypPrices(usdToSyp: string, context?: TransactionContext): Promise<void> {
+    const client = resolvePrismaClient(this.prisma, context);
+    const products = await client.product.findMany({
+      where: { deletedAt: null, calculateSypFromRate: true },
+      select: { id: true, pharmacyPriceUsd: true, consumerPriceUsd: true },
+    });
+    for (const product of products) {
+      await client.product.update({
+        where: { id: product.id },
+        data: {
+          pharmacyPriceSyp: new Prisma.Decimal(calculateSypPrice(product.pharmacyPriceUsd.toString(), usdToSyp)),
+          consumerPriceSyp: new Prisma.Decimal(calculateSypPrice(product.consumerPriceUsd.toString(), usdToSyp)),
+        },
+      });
+    }
+  }
+}
+
+function priceColumns(input: {
+  pharmacyPriceUsd?: string;
+  pharmacyPriceSyp?: string;
+  consumerPriceUsd?: string;
+  consumerPriceSyp?: string;
+  calculateSypFromRate?: boolean;
+  invoiceCurrency?: UpdateProductRepoInput['invoiceCurrency'];
+}): Prisma.ProductUpdateManyMutationInput {
+  return {
+    ...(input.pharmacyPriceUsd !== undefined ? { pharmacyPriceUsd: new Prisma.Decimal(input.pharmacyPriceUsd) } : {}),
+    ...(input.pharmacyPriceSyp !== undefined ? { pharmacyPriceSyp: new Prisma.Decimal(input.pharmacyPriceSyp) } : {}),
+    ...(input.consumerPriceUsd !== undefined ? { consumerPriceUsd: new Prisma.Decimal(input.consumerPriceUsd) } : {}),
+    ...(input.consumerPriceSyp !== undefined ? { consumerPriceSyp: new Prisma.Decimal(input.consumerPriceSyp) } : {}),
+    ...(input.calculateSypFromRate !== undefined ? { calculateSypFromRate: input.calculateSypFromRate } : {}),
+    ...(input.invoiceCurrency !== undefined ? { invoiceCurrency: input.invoiceCurrency } : {}),
+  };
 }
 
 function conflictForProduct(error: unknown): ConflictException {

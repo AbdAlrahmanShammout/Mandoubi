@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { BaseModelResponse } from '@/common/base/base-model.response';
 import { InternalException } from '@/common/exceptions/internal.exception';
 import { ProductEntity } from '@/modules/product/entity/product.entity';
+import { InvoiceCurrency } from '@/modules/product/enum/invoice-currency.enum';
 import { ProductAvailability } from '@/modules/product/enum/product-availability.enum';
 import { ProductStatus } from '@/modules/product/enum/product-status.enum';
 import { ProductStockResponse } from '@/modules/product/dto/response/model/product-stock.response';
@@ -28,6 +29,18 @@ export class ProductResponse extends BaseModelResponse {
   readonly maximumOrderQuantity: number;
   @ApiProperty({ example: 5 })
   readonly lowQuantityThreshold: number;
+  @ApiProperty({ example: '2.50' })
+  readonly pharmacyPriceUsd: string;
+  @ApiProperty({ example: '40000.00' })
+  readonly pharmacyPriceSyp: string;
+  @ApiProperty({ example: '3.00' })
+  readonly consumerPriceUsd: string;
+  @ApiProperty({ example: '50000.00' })
+  readonly consumerPriceSyp: string;
+  @ApiProperty({ example: false })
+  readonly calculateSypFromRate: boolean;
+  @ApiProperty({ enum: InvoiceCurrency, example: InvoiceCurrency.SYP })
+  readonly invoiceCurrency: InvoiceCurrency;
   @ApiProperty({ enum: ProductAvailability, example: ProductAvailability.AVAILABLE })
   readonly availability: ProductAvailability;
   @ApiProperty({ enum: ProductStatus, example: ProductStatus.ACTIVE })
@@ -48,6 +61,12 @@ export class ProductResponse extends BaseModelResponse {
     this.minimumOrderQuantity = product.minimumOrderQuantity;
     this.maximumOrderQuantity = product.maximumOrderQuantity;
     this.lowQuantityThreshold = product.lowQuantityThreshold;
+    this.pharmacyPriceUsd = product.pharmacyPriceUsd;
+    this.pharmacyPriceSyp = product.pharmacyPriceSyp;
+    this.consumerPriceUsd = product.consumerPriceUsd;
+    this.consumerPriceSyp = product.consumerPriceSyp;
+    this.calculateSypFromRate = product.calculateSypFromRate;
+    this.invoiceCurrency = product.invoiceCurrency;
     this.availability = product.availability;
     this.status = product.status;
     this.stocks = product.stocks.map((stock) => new ProductStockResponse(stock));

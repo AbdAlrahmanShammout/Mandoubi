@@ -124,6 +124,10 @@ function productBody(manufacturerId: number, barcode: string, stocks: ReadonlyAr
     minimumOrderQuantity: 1,
     maximumOrderQuantity: 20,
     lowQuantityThreshold: 5,
+    pharmacyPriceUsd: '2.50',
+    pharmacyPriceSyp: '40000',
+    consumerPriceUsd: '3.00',
+    consumerPriceSyp: '50000',
     stocks,
   };
 }

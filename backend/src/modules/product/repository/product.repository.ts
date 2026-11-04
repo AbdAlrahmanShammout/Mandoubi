@@ -14,4 +14,6 @@ export abstract class ProductRepository {
   abstract list(): Promise<ProductEntity[]>;
   /** Updates product fields and returns the product, or null when it is missing. */
   abstract update(input: UpdateProductRepoInput, context?: TransactionContext): Promise<ProductEntity | null>;
+  /** Recalculates Syrian-pound prices for products whose switch is on. */
+  abstract recalculateSypPrices(usdToSyp: string, context?: TransactionContext): Promise<void>;
 }

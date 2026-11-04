@@ -1,7 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { ArrayMinSize, IsInt, IsOptional, IsString, MaxLength, Min, MinLength, ValidateNested } from 'class-validator';
+import { ArrayMinSize, IsBoolean, IsEnum, IsInt, IsOptional, IsString, Matches, MaxLength, Min, MinLength, ValidateIf, ValidateNested } from 'class-validator';
+import { MONEY_PATTERN } from '@/modules/product/constants/money.constant';
 import { ProductStockRequestDto } from '@/modules/product/dto/request/product-stock-request.dto';
+import { InvoiceCurrency } from '@/modules/product/enum/invoice-currency.enum';
 
 /**
  * Product opened by an administrator, including its warehouse quantities.
@@ -43,6 +45,32 @@ export class CreateProductRequestDto {
   @IsInt()
   @Min(0)
   lowQuantityThreshold!: number;
+  @ApiProperty({ description: 'Pharmacy selling price in US dollars', example: '2.50' })
+  @IsString()
+  @Matches(MONEY_PATTERN)
+  pharmacyPriceUsd!: string;
+  @ApiPropertyOptional({ description: 'Pharmacy selling price in Syrian pounds. Required when calculation is off.', example: '40000' })
+  @ValidateIf((dto: CreateProductRequestDto) => dto.calculateSypFromRate !== true)
+  @IsString()
+  @Matches(MONEY_PATTERN)
+  pharmacyPriceSyp?: string;
+  @ApiProperty({ description: 'Suggested consumer price in US dollars', example: '3.00' })
+  @IsString()
+  @Matches(MONEY_PATTERN)
+  consumerPriceUsd!: string;
+  @ApiPropertyOptional({ description: 'Suggested consumer price in Syrian pounds. Required when calculation is off.', example: '50000' })
+  @ValidateIf((dto: CreateProductRequestDto) => dto.calculateSypFromRate !== true)
+  @IsString()
+  @Matches(MONEY_PATTERN)
+  consumerPriceSyp?: string;
+  @ApiPropertyOptional({ description: 'Calculate Syrian-pound prices from the exchange rate', example: false })
+  @IsOptional()
+  @IsBoolean()
+  calculateSypFromRate?: boolean;
+  @ApiPropertyOptional({ description: 'Currency recorded on invoices. Defaults to the Syrian pound.', enum: InvoiceCurrency, example: InvoiceCurrency.SYP })
+  @IsOptional()
+  @IsEnum(InvoiceCurrency)
+  invoiceCurrency?: InvoiceCurrency;
   @ApiProperty({ description: 'Warehouse quantities. One warehouse is primary.', type: [ProductStockRequestDto] })
   @ArrayMinSize(1)
   @ValidateNested({ each: true })

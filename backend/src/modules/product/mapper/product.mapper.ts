@@ -1,8 +1,10 @@
 import { InternalException } from '@/common/exceptions/internal.exception';
 import { ManufacturerMapper } from '@/modules/manufacturer/mapper/manufacturer.mapper';
 import { ProductEntity } from '@/modules/product/entity/product.entity';
+import { InvoiceCurrency } from '@/modules/product/enum/invoice-currency.enum';
 import { ProductAvailability } from '@/modules/product/enum/product-availability.enum';
 import { ProductStatus } from '@/modules/product/enum/product-status.enum';
+import { formatMoney } from '@/modules/product/helpers/syp-price.helper';
 import { ProductStockMapper } from '@/modules/product/mapper/product-stock.mapper';
 import { ProductType } from '@/modules/product/types/product-details-schema.type';
 
@@ -27,6 +29,12 @@ export class ProductMapper {
       minimumOrderQuantity: payload.minimumOrderQuantity,
       maximumOrderQuantity: payload.maximumOrderQuantity,
       lowQuantityThreshold: payload.lowQuantityThreshold,
+      pharmacyPriceUsd: formatMoney(payload.pharmacyPriceUsd),
+      pharmacyPriceSyp: formatMoney(payload.pharmacyPriceSyp),
+      consumerPriceUsd: formatMoney(payload.consumerPriceUsd),
+      consumerPriceSyp: formatMoney(payload.consumerPriceSyp),
+      calculateSypFromRate: payload.calculateSypFromRate,
+      invoiceCurrency: payload.invoiceCurrency as InvoiceCurrency,
       availability: payload.availability as ProductAvailability,
       status: payload.status as ProductStatus,
       createdAt: payload.createdAt,

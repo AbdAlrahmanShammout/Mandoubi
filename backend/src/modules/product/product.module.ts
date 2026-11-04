@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { DatabaseProviderModule } from '@/providers/database/database-provider.module';
+import { ExchangeRateModule } from '@/modules/exchange-rate/exchange-rate.module';
 import { ManufacturerModule } from '@/modules/manufacturer/manufacturer.module';
 import { ProductStockPrismaRepository } from '@/modules/product/repository/product-stock-prisma.repository';
 import { ProductStockRepository } from '@/modules/product/repository/product-stock.repository';
@@ -12,7 +13,7 @@ import { WarehouseModule } from '@/modules/warehouse/warehouse.module';
  * Products and their warehouse quantities. Controllers are registered by audience modules.
  */
 @Module({
-  imports: [DatabaseProviderModule, ManufacturerModule, WarehouseModule],
+  imports: [DatabaseProviderModule, ExchangeRateModule, ManufacturerModule, WarehouseModule],
   providers: [
     ProductService,
     { provide: ProductRepository, useClass: ProductPrismaRepository },
