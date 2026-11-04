@@ -1,0 +1,254 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/pharmacy/notifications": {
+      "get": {
+        "operationId": "NotificationPharmacyController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List pharmacy notifications",
+        "tags": [
+          "Pharmacy notifications"
+        ]
+      }
+    },
+    "/pharmacy/notifications/{id}/read": {
+      "post": {
+        "operationId": "NotificationPharmacyController_markRead",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Mark a pharmacy notification as read",
+        "tags": [
+          "Pharmacy notifications"
+        ]
+      }
+    },
+    "/pharmacy/orders": {
+      "post": {
+        "operationId": "OrderPharmacyController_submit",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitOrderRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Submit an order",
+        "tags": [
+          "Pharmacy orders"
+        ]
+      },
+      "get": {
+        "operationId": "OrderPharmacyController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List pharmacy orders",
+        "tags": [
+          "Pharmacy orders"
+        ]
+      }
+    },
+    "/pharmacy/orders/{id}": {
+      "get": {
+        "operationId": "OrderPharmacyController_getOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read a pharmacy order",
+        "tags": [
+          "Pharmacy orders"
+        ]
+      }
+    },
+    "/pharmacy/auth/sign-in": {
+      "post": {
+        "operationId": "PharmacyAuthController_signIn",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignInRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Sign in as a pharmacy",
+        "tags": [
+          "Pharmacy auth"
+        ]
+      }
+    },
+    "/pharmacy/auth/me": {
+      "get": {
+        "operationId": "PharmacyAuthController_getMe",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read the signed-in pharmacy",
+        "tags": [
+          "Pharmacy auth"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Pharmacy Distribution — Pharmacy API",
+    "description": "Endpoints used by the pharmacy mobile app.",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
+    },
+    "schemas": {
+      "OrderLineRequestDto": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "number",
+            "description": "Product to order",
+            "example": 1
+          },
+          "paidQuantity": {
+            "type": "number",
+            "description": "Paid quantity. Free units are calculated from the offer",
+            "example": 4
+          }
+        },
+        "required": [
+          "productId",
+          "paidQuantity"
+        ]
+      },
+      "SubmitOrderRequestDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderLineRequestDto"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "SignInRequestDto": {
+        "type": "object",
+        "properties": {
+          "mobileNumber": {
+            "type": "string",
+            "description": "Account mobile number",
+            "example": "0999000000"
+          },
+          "password": {
+            "type": "string",
+            "description": "Account password",
+            "example": "replace-with-a-long-password",
+            "minLength": 8,
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "mobileNumber",
+          "password"
+        ]
+      }
+    }
+  }
+}

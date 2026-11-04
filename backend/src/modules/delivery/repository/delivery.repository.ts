@@ -19,4 +19,6 @@ export abstract class DeliveryRepository {
   abstract reassign(input: { readonly invoiceId: number; readonly driverId: number; readonly assignedByUserId: number }, context: TransactionContext): Promise<boolean>;
   /** Inserts one delivery result. Existing rows stay unchanged. */
   abstract appendEvent(input: CreateDeliveryEventRepoInput, context?: TransactionContext): Promise<DeliveryEventEntity>;
+  /** Loads the newest result stored for one invoice. */
+  abstract findLatestEventByInvoiceId(invoiceId: number, context?: TransactionContext): Promise<DeliveryEventEntity | null>;
 }

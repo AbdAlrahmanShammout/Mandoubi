@@ -1,0 +1,240 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/driver/deliveries": {
+      "get": {
+        "operationId": "DeliveryDriverController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List assigned deliveries",
+        "tags": [
+          "Driver deliveries"
+        ]
+      }
+    },
+    "/driver/deliveries/{invoiceId}/result": {
+      "post": {
+        "operationId": "DeliveryDriverController_record",
+        "parameters": [
+          {
+            "name": "invoiceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordDeliveryResultRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Record a delivery result. Submitting the same result again does not record another collection.",
+        "tags": [
+          "Driver deliveries"
+        ]
+      }
+    },
+    "/driver/auth/sign-in": {
+      "post": {
+        "operationId": "DriverAuthController_signIn",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignInRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Sign in as a driver",
+        "tags": [
+          "Driver auth"
+        ]
+      }
+    },
+    "/driver/auth/me": {
+      "get": {
+        "operationId": "DriverAuthController_getMe",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read the signed-in driver",
+        "tags": [
+          "Driver auth"
+        ]
+      }
+    },
+    "/driver/notifications": {
+      "get": {
+        "operationId": "NotificationDriverController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List driver notifications",
+        "tags": [
+          "Driver notifications"
+        ]
+      }
+    },
+    "/driver/notifications/{id}/read": {
+      "post": {
+        "operationId": "NotificationDriverController_markRead",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Mark a driver notification as read",
+        "tags": [
+          "Driver notifications"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Pharmacy Distribution — Driver API",
+    "description": "Endpoints used by the delivery mobile app.",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
+    },
+    "schemas": {
+      "RecordDeliveryResultRequestDto": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string",
+            "description": "Delivery result",
+            "enum": [
+              "DELIVERED_PAID",
+              "DELIVERED_UNPAID",
+              "NOT_DELIVERED"
+            ],
+            "example": "DELIVERED_PAID"
+          },
+          "nonDeliveryReason": {
+            "type": "string",
+            "description": "Required when the invoice was not delivered",
+            "enum": [
+              "PHARMACY_CLOSED",
+              "PAYMENT_UNAVAILABLE"
+            ],
+            "example": "PHARMACY_CLOSED"
+          },
+          "recipientName": {
+            "type": "string",
+            "description": "Person who received the goods. Required when the invoice was delivered",
+            "example": "Lina Hassan"
+          },
+          "note": {
+            "type": "string",
+            "description": "Optional note",
+            "example": "Paid in cash"
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "SignInRequestDto": {
+        "type": "object",
+        "properties": {
+          "mobileNumber": {
+            "type": "string",
+            "description": "Account mobile number",
+            "example": "0999000000"
+          },
+          "password": {
+            "type": "string",
+            "description": "Account password",
+            "example": "replace-with-a-long-password",
+            "minLength": 8,
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "mobileNumber",
+          "password"
+        ]
+      }
+    }
+  }
+}

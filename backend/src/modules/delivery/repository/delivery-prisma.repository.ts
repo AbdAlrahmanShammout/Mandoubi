@@ -61,6 +61,12 @@ export class DeliveryPrismaRepository extends DeliveryRepository {
     const result = await client.deliveryEvent.create({ data: input });
     return DeliveryEventMapper.toEntity(result);
   }
+  /** Loads the newest result for one invoice, including one recorded on an earlier attempt. */
+  async findLatestEventByInvoiceId(invoiceId: number, context?: TransactionContext): Promise<DeliveryEventEntity | null> {
+    const client = resolvePrismaClient(this.prisma, context);
+    const result = await client.deliveryEvent.findFirst({ where: { invoiceId }, orderBy: { id: 'desc' } });
+    return result ? DeliveryEventMapper.toEntity(result) : null;
+  }
 }
 
 function alreadyAssigned(): ConflictException {

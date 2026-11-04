@@ -4,6 +4,7 @@ import { TransactionRunner } from '@/common/base/transaction-runner';
 import { InternalException } from '@/common/exceptions/internal.exception';
 import { InvalidStateException } from '@/common/exceptions/invalid-state.exception';
 import { ResourceNotFoundException } from '@/common/exceptions/resource-not-found.exception';
+import { isRepeatedDeliveryResult } from '@/modules/delivery/helpers/is-repeated-delivery-result.helper';
 import { DeliveryResultSelection, ResolvedDeliveryResult, resolveDeliveryResult } from '@/modules/delivery/helpers/resolve-delivery-result.helper';
 import { DeliveryAssignmentEntity } from '@/modules/delivery/entity/delivery-assignment.entity';
 import { DeliveryEventEntity } from '@/modules/delivery/entity/delivery-event.entity';
@@ -104,10 +105,14 @@ export class DeliveryService {
     const driver = await this.driverService.getDriverById(input.driverId);
     return this.transactionRunner.run(async (context) => {
       const assignment = await this.deliveryRepository.findByInvoiceId(input.invoiceId, context);
-      if (!assignment || assignment.driverId !== input.driverId) {
+      if (!assignment || assignment.driverId !== input.driverId || !assignment.invoice) {
         throw new ResourceNotFoundException('Delivery assignment', input.invoiceId);
       }
-      const previousStatus = assignment.invoice?.status ?? InvoiceStatus.ASSIGNED;
+      const latestEvent = await this.deliveryRepository.findLatestEventByInvoiceId(input.invoiceId, context);
+      if (isRepeatedDeliveryResult({ invoiceStatus: assignment.invoice.status, recordedResult: latestEvent?.result ?? null, submittedResult: resolved.result }) && latestEvent) {
+        return { event: latestEvent, invoiceStatus: assignment.invoice.status };
+      }
+      const previousStatus = assignment.invoice.status;
       const invoice = await this.invoiceService.markDelivered(input.invoiceId, invoiceStatusFor(resolved.result), context);
       const event = await this.deliveryRepository.appendEvent({
         assignmentId: assignment.id,

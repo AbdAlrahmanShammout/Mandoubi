@@ -1,0 +1,2310 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/admin/auth/sign-in": {
+      "post": {
+        "operationId": "AdminAuthController_signIn",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignInRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Sign in as an administrator",
+        "tags": [
+          "Admin auth"
+        ]
+      }
+    },
+    "/admin/auth/me": {
+      "get": {
+        "operationId": "AdminAuthController_getMe",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read the signed-in administrator",
+        "tags": [
+          "Admin auth"
+        ]
+      }
+    },
+    "/admin/audit": {
+      "get": {
+        "operationId": "AuditAdminController_list",
+        "parameters": [
+          {
+            "name": "resourceType",
+            "required": true,
+            "in": "query",
+            "description": "Kind of record, such as invoice, product, or payment",
+            "schema": {
+              "example": "invoice",
+              "type": "string"
+            }
+          },
+          {
+            "name": "resourceId",
+            "required": true,
+            "in": "query",
+            "description": "Identifier of that record",
+            "schema": {
+              "example": "1",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read audit entries for one resource",
+        "tags": [
+          "Admin audit"
+        ]
+      }
+    },
+    "/admin/deliveries": {
+      "post": {
+        "operationId": "DeliveryAdminController_assign",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignDeliveryRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Assign an invoice to a driver",
+        "tags": [
+          "Admin deliveries"
+        ]
+      }
+    },
+    "/admin/drivers": {
+      "post": {
+        "operationId": "DriverAdminController_createAccount",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDriverAccountRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a driver account",
+        "tags": [
+          "Admin drivers"
+        ]
+      }
+    },
+    "/admin/drivers/{id}": {
+      "get": {
+        "operationId": "DriverAdminController_getDriver",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read a driver account",
+        "tags": [
+          "Admin drivers"
+        ]
+      }
+    },
+    "/admin/drivers/{id}/status": {
+      "patch": {
+        "operationId": "DriverAdminController_updateStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDriverStatusRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change a driver account status",
+        "tags": [
+          "Admin drivers"
+        ]
+      }
+    },
+    "/admin/drivers/{driverId}/settlement": {
+      "get": {
+        "operationId": "DriverSettlementAdminController_getPosition",
+        "parameters": [
+          {
+            "name": "driverId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read a driver settlement position",
+        "tags": [
+          "Admin driver settlements"
+        ]
+      }
+    },
+    "/admin/driver-settlements": {
+      "post": {
+        "operationId": "DriverSettlementAdminController_settle",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SettleDriverRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Record a driver handover",
+        "tags": [
+          "Admin driver settlements"
+        ]
+      }
+    },
+    "/admin/exchange-rate": {
+      "get": {
+        "operationId": "ExchangeRateAdminController_getRate",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read the exchange rate",
+        "tags": [
+          "Admin exchange rate"
+        ]
+      },
+      "put": {
+        "operationId": "ExchangeRateAdminController_replace",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplaceExchangeRateRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Replace the exchange rate",
+        "tags": [
+          "Admin exchange rate"
+        ]
+      }
+    },
+    "/admin/invoices/{id}": {
+      "get": {
+        "operationId": "InvoiceAdminController_getInvoice",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read an invoice for review",
+        "tags": [
+          "Admin invoices"
+        ]
+      }
+    },
+    "/admin/invoices/{id}/approve": {
+      "post": {
+        "operationId": "InvoiceAdminController_approve",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Approve an invoice",
+        "tags": [
+          "Admin invoices"
+        ]
+      }
+    },
+    "/admin/invoices/{id}/reject": {
+      "post": {
+        "operationId": "InvoiceAdminController_reject",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RejectInvoiceRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Reject an invoice",
+        "tags": [
+          "Admin invoices"
+        ]
+      }
+    },
+    "/admin/manufacturers": {
+      "post": {
+        "operationId": "ManufacturerAdminController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateManufacturerRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a manufacturer",
+        "tags": [
+          "Admin manufacturers"
+        ]
+      },
+      "get": {
+        "operationId": "ManufacturerAdminController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List manufacturers",
+        "tags": [
+          "Admin manufacturers"
+        ]
+      }
+    },
+    "/admin/manufacturers/{id}": {
+      "get": {
+        "operationId": "ManufacturerAdminController_getManufacturer",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read a manufacturer",
+        "tags": [
+          "Admin manufacturers"
+        ]
+      },
+      "patch": {
+        "operationId": "ManufacturerAdminController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateManufacturerRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Rename a manufacturer",
+        "tags": [
+          "Admin manufacturers"
+        ]
+      }
+    },
+    "/admin/manufacturers/{id}/status": {
+      "patch": {
+        "operationId": "ManufacturerAdminController_updateStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateManufacturerStatusRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change a manufacturer status",
+        "tags": [
+          "Admin manufacturers"
+        ]
+      }
+    },
+    "/admin/notifications": {
+      "get": {
+        "operationId": "NotificationAdminController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List admin notifications",
+        "tags": [
+          "Admin notifications"
+        ]
+      }
+    },
+    "/admin/notifications/{id}/read": {
+      "post": {
+        "operationId": "NotificationAdminController_markRead",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Mark an admin notification as read",
+        "tags": [
+          "Admin notifications"
+        ]
+      }
+    },
+    "/admin/orders": {
+      "get": {
+        "operationId": "OrderAdminController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List orders for review",
+        "tags": [
+          "Admin orders"
+        ]
+      }
+    },
+    "/admin/orders/{id}": {
+      "get": {
+        "operationId": "OrderAdminController_getOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read an order for review",
+        "tags": [
+          "Admin orders"
+        ]
+      }
+    },
+    "/admin/receipts": {
+      "post": {
+        "operationId": "PaymentAdminController_record",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordReceiptRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Record a receipt voucher",
+        "tags": [
+          "Admin receipts"
+        ]
+      }
+    },
+    "/admin/pharmacies": {
+      "post": {
+        "operationId": "PharmacyAdminController_createAccount",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePharmacyAccountRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a pharmacy account",
+        "tags": [
+          "Admin pharmacies"
+        ]
+      }
+    },
+    "/admin/pharmacies/{id}": {
+      "get": {
+        "operationId": "PharmacyAdminController_getPharmacy",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read a pharmacy account",
+        "tags": [
+          "Admin pharmacies"
+        ]
+      }
+    },
+    "/admin/pharmacies/{id}/status": {
+      "patch": {
+        "operationId": "PharmacyAdminController_updateStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePharmacyStatusRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change a pharmacy account status",
+        "tags": [
+          "Admin pharmacies"
+        ]
+      }
+    },
+    "/admin/pharmacies/{pharmacyId}/statement": {
+      "get": {
+        "operationId": "PharmacyLedgerAdminController_getStatement",
+        "parameters": [
+          {
+            "name": "pharmacyId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read a pharmacy account statement",
+        "tags": [
+          "Admin pharmacy statements"
+        ]
+      }
+    },
+    "/admin/products": {
+      "post": {
+        "operationId": "ProductAdminController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProductRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a product",
+        "tags": [
+          "Admin products"
+        ]
+      },
+      "get": {
+        "operationId": "ProductAdminController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List products",
+        "tags": [
+          "Admin products"
+        ]
+      }
+    },
+    "/admin/products/{id}": {
+      "get": {
+        "operationId": "ProductAdminController_getProduct",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read a product",
+        "tags": [
+          "Admin products"
+        ]
+      },
+      "patch": {
+        "operationId": "ProductAdminController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProductRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update a product",
+        "tags": [
+          "Admin products"
+        ]
+      }
+    },
+    "/admin/products/{id}/stocks": {
+      "put": {
+        "operationId": "ProductAdminController_replaceStocks",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplaceProductStocksRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Replace product warehouse quantities",
+        "tags": [
+          "Admin products"
+        ]
+      }
+    },
+    "/admin/products/{id}/stocks/{warehouseId}": {
+      "patch": {
+        "operationId": "ProductAdminController_updateQuantity",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "warehouseId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProductStockQuantityRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update one warehouse quantity",
+        "tags": [
+          "Admin products"
+        ]
+      }
+    },
+    "/admin/products/{id}/primary-warehouse": {
+      "patch": {
+        "operationId": "ProductAdminController_changePrimary",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePrimaryWarehouseRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change the primary warehouse",
+        "tags": [
+          "Admin products"
+        ]
+      }
+    },
+    "/admin/rejection-reasons": {
+      "post": {
+        "operationId": "RejectionReasonAdminController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRejectionReasonRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a rejection reason",
+        "tags": [
+          "Admin rejection reasons"
+        ]
+      },
+      "get": {
+        "operationId": "RejectionReasonAdminController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List rejection reasons",
+        "tags": [
+          "Admin rejection reasons"
+        ]
+      }
+    },
+    "/admin/rejection-reasons/{id}": {
+      "patch": {
+        "operationId": "RejectionReasonAdminController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRejectionReasonRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Rename a rejection reason",
+        "tags": [
+          "Admin rejection reasons"
+        ]
+      }
+    },
+    "/admin/rejection-reasons/{id}/status": {
+      "patch": {
+        "operationId": "RejectionReasonAdminController_updateStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRejectionReasonStatusRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change a rejection reason status",
+        "tags": [
+          "Admin rejection reasons"
+        ]
+      }
+    },
+    "/admin/reports/sales": {
+      "get": {
+        "operationId": "ReportAdminController_sales",
+        "parameters": [
+          {
+            "name": "from",
+            "required": true,
+            "in": "query",
+            "description": "Period start",
+            "schema": {
+              "example": "2026-11-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": true,
+            "in": "query",
+            "description": "Period end",
+            "schema": {
+              "example": "2026-11-30T23:59:59.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "pharmacyId",
+            "required": false,
+            "in": "query",
+            "description": "Limit the report to one pharmacy",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "category",
+            "required": false,
+            "in": "query",
+            "description": "Limit the report to one category",
+            "schema": {
+              "example": "NATIONAL_MEDICINE",
+              "type": "string",
+              "enum": [
+                "NATIONAL_MEDICINE",
+                "FOREIGN_MEDICINE",
+                "ACCESSORY"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read the sales report",
+        "tags": [
+          "Admin reports"
+        ]
+      }
+    },
+    "/admin/reports/products": {
+      "get": {
+        "operationId": "ReportAdminController_products",
+        "parameters": [
+          {
+            "name": "from",
+            "required": true,
+            "in": "query",
+            "description": "Period start",
+            "schema": {
+              "example": "2026-11-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": true,
+            "in": "query",
+            "description": "Period end",
+            "schema": {
+              "example": "2026-11-30T23:59:59.000Z",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read the product and stock report",
+        "tags": [
+          "Admin reports"
+        ]
+      }
+    },
+    "/admin/reports/debts": {
+      "get": {
+        "operationId": "ReportAdminController_debts",
+        "parameters": [
+          {
+            "name": "from",
+            "required": true,
+            "in": "query",
+            "description": "Period start",
+            "schema": {
+              "example": "2026-11-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": true,
+            "in": "query",
+            "description": "Period end",
+            "schema": {
+              "example": "2026-11-30T23:59:59.000Z",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read the debt report",
+        "tags": [
+          "Admin reports"
+        ]
+      }
+    },
+    "/admin/reports/drivers": {
+      "get": {
+        "operationId": "ReportAdminController_drivers",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read the driver report",
+        "tags": [
+          "Admin reports"
+        ]
+      }
+    },
+    "/admin/returns": {
+      "post": {
+        "operationId": "ReturnRecordAdminController_returnToWarehouse",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReturnInvoiceRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Return an invoice to its warehouse",
+        "tags": [
+          "Admin returns"
+        ]
+      }
+    },
+    "/admin/warehouses": {
+      "post": {
+        "operationId": "WarehouseAdminController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWarehouseRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a warehouse",
+        "tags": [
+          "Admin warehouses"
+        ]
+      },
+      "get": {
+        "operationId": "WarehouseAdminController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List warehouses",
+        "tags": [
+          "Admin warehouses"
+        ]
+      }
+    },
+    "/admin/warehouses/{id}": {
+      "get": {
+        "operationId": "WarehouseAdminController_getWarehouse",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read a warehouse",
+        "tags": [
+          "Admin warehouses"
+        ]
+      },
+      "patch": {
+        "operationId": "WarehouseAdminController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWarehouseRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update a warehouse",
+        "tags": [
+          "Admin warehouses"
+        ]
+      }
+    },
+    "/admin/warehouses/{id}/products": {
+      "get": {
+        "operationId": "WarehouseAdminController_listProducts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List products stored in a warehouse",
+        "tags": [
+          "Admin warehouses"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Pharmacy Distribution — Admin API",
+    "description": "Endpoints used by the admin dashboard.",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
+    },
+    "schemas": {
+      "SignInRequestDto": {
+        "type": "object",
+        "properties": {
+          "mobileNumber": {
+            "type": "string",
+            "description": "Account mobile number",
+            "example": "0999000000"
+          },
+          "password": {
+            "type": "string",
+            "description": "Account password",
+            "example": "replace-with-a-long-password",
+            "minLength": 8,
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "mobileNumber",
+          "password"
+        ]
+      },
+      "AssignDeliveryRequestDto": {
+        "type": "object",
+        "properties": {
+          "invoiceId": {
+            "type": "number",
+            "description": "Approved invoice to assign",
+            "example": 1
+          },
+          "driverId": {
+            "type": "number",
+            "description": "Driver who receives the invoice",
+            "example": 1
+          }
+        },
+        "required": [
+          "invoiceId",
+          "driverId"
+        ]
+      },
+      "CreateDriverAccountRequestDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Driver display name",
+            "example": "Ahmad Ali"
+          },
+          "mobileNumber": {
+            "type": "string",
+            "description": "Driver sign-in mobile number",
+            "example": "0999765432"
+          },
+          "password": {
+            "type": "string",
+            "description": "Initial sign-in password",
+            "example": "driver-password",
+            "minLength": 8,
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "name",
+          "mobileNumber",
+          "password"
+        ]
+      },
+      "UpdateDriverStatusRequestDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Next account status",
+            "enum": [
+              "ACTIVE",
+              "DISABLED"
+            ],
+            "example": "DISABLED"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "SettleDriverRequestDto": {
+        "type": "object",
+        "properties": {
+          "driverId": {
+            "type": "number",
+            "description": "Driver handing over the money",
+            "example": 1
+          },
+          "currency": {
+            "type": "string",
+            "description": "Currency handed over",
+            "enum": [
+              "USD",
+              "SYP"
+            ],
+            "example": "SYP"
+          },
+          "amount": {
+            "type": "string",
+            "description": "Amount handed over. It must equal the selected collections",
+            "example": "30000.00"
+          },
+          "receivedByName": {
+            "type": "string",
+            "description": "Person who received the handover",
+            "example": "Ahmad Cashier"
+          },
+          "paymentIds": {
+            "description": "Driver collections covered in full",
+            "example": [
+              1
+            ],
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "required": [
+          "driverId",
+          "currency",
+          "amount",
+          "receivedByName",
+          "paymentIds"
+        ]
+      },
+      "ReplaceExchangeRateRequestDto": {
+        "type": "object",
+        "properties": {
+          "usdToSyp": {
+            "type": "string",
+            "description": "Syrian pounds for one US dollar",
+            "example": "15000"
+          }
+        },
+        "required": [
+          "usdToSyp"
+        ]
+      },
+      "RejectInvoiceRequestDto": {
+        "type": "object",
+        "properties": {
+          "rejectionReasonId": {
+            "type": "number",
+            "description": "Managed rejection reason",
+            "example": 1
+          },
+          "customReason": {
+            "type": "string",
+            "description": "Free-text rejection note",
+            "example": "Call the pharmacy before the next order"
+          }
+        }
+      },
+      "CreateManufacturerRequestDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Manufacturer name",
+            "example": "Ibn Al Haytham"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateManufacturerRequestDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Manufacturer name",
+            "example": "Ibn Al Haytham Pharma"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateManufacturerStatusRequestDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Next manufacturer status",
+            "enum": [
+              "ACTIVE",
+              "DISABLED"
+            ],
+            "example": "DISABLED"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "RecordReceiptRequestDto": {
+        "type": "object",
+        "properties": {
+          "pharmacyId": {
+            "type": "number",
+            "description": "Pharmacy that paid",
+            "example": 1
+          },
+          "currency": {
+            "type": "string",
+            "description": "Currency of the amount received",
+            "enum": [
+              "USD",
+              "SYP"
+            ],
+            "example": "SYP"
+          },
+          "amount": {
+            "type": "string",
+            "description": "Amount received. It must equal the selected invoices",
+            "example": "60000.00"
+          },
+          "receivedByName": {
+            "type": "string",
+            "description": "Person who received the amount",
+            "example": "Ahmad Cashier"
+          },
+          "paymentMethod": {
+            "type": "string",
+            "description": "How the amount was received",
+            "enum": [
+              "CASH",
+              "BANK_TRANSFER"
+            ],
+            "example": "CASH"
+          },
+          "invoiceIds": {
+            "description": "Whole invoices covered by this receipt",
+            "example": [
+              1
+            ],
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "required": [
+          "pharmacyId",
+          "currency",
+          "amount",
+          "receivedByName",
+          "invoiceIds"
+        ]
+      },
+      "CreatePharmacyAccountRequestDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Pharmacy display name",
+            "example": "Al Shifa Pharmacy"
+          },
+          "mobileNumber": {
+            "type": "string",
+            "description": "Pharmacy sign-in mobile number",
+            "example": "0999123456"
+          },
+          "address": {
+            "type": "string",
+            "description": "Delivery address",
+            "example": "Baghdad Street, Damascus"
+          },
+          "password": {
+            "type": "string",
+            "description": "Initial sign-in password",
+            "example": "pharmacy-password",
+            "minLength": 8,
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "name",
+          "mobileNumber",
+          "address",
+          "password"
+        ]
+      },
+      "UpdatePharmacyStatusRequestDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Next account status",
+            "enum": [
+              "ACTIVE",
+              "DISABLED"
+            ],
+            "example": "DISABLED"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "ProductStockRequestDto": {
+        "type": "object",
+        "properties": {
+          "warehouseId": {
+            "type": "number",
+            "description": "Warehouse that holds this quantity",
+            "example": 1
+          },
+          "quantity": {
+            "type": "number",
+            "description": "Physical quantity in this warehouse",
+            "example": 20
+          },
+          "isPrimary": {
+            "type": "boolean",
+            "description": "Whether this warehouse is the primary one",
+            "example": true
+          }
+        },
+        "required": [
+          "warehouseId",
+          "quantity"
+        ]
+      },
+      "CreateProductRequestDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Product name",
+            "example": "Paracetamol 500"
+          },
+          "barcode": {
+            "type": "string",
+            "description": "Product barcode",
+            "example": "6281000000001"
+          },
+          "manufacturerId": {
+            "type": "number",
+            "description": "Selected manufacturer",
+            "example": 1
+          },
+          "activeIngredient": {
+            "type": "string",
+            "description": "Active ingredient",
+            "example": "Paracetamol"
+          },
+          "imageUrl": {
+            "type": "string",
+            "description": "Product image address",
+            "example": "https://cdn.example.com/paracetamol.png"
+          },
+          "minimumOrderQuantity": {
+            "type": "number",
+            "description": "Minimum quantity that can be ordered",
+            "example": 1
+          },
+          "maximumOrderQuantity": {
+            "type": "number",
+            "description": "Maximum paid quantity that can be ordered",
+            "example": 100
+          },
+          "lowQuantityThreshold": {
+            "type": "number",
+            "description": "Primary-warehouse quantity that shows a limited-stock alert",
+            "example": 5
+          },
+          "pharmacyPriceUsd": {
+            "type": "string",
+            "description": "Pharmacy selling price in US dollars",
+            "example": "2.50"
+          },
+          "pharmacyPriceSyp": {
+            "type": "string",
+            "description": "Pharmacy selling price in Syrian pounds. Required when calculation is off.",
+            "example": "40000"
+          },
+          "consumerPriceUsd": {
+            "type": "string",
+            "description": "Suggested consumer price in US dollars",
+            "example": "3.00"
+          },
+          "consumerPriceSyp": {
+            "type": "string",
+            "description": "Suggested consumer price in Syrian pounds. Required when calculation is off.",
+            "example": "50000"
+          },
+          "calculateSypFromRate": {
+            "type": "boolean",
+            "description": "Calculate Syrian-pound prices from the exchange rate",
+            "example": false
+          },
+          "invoiceCurrency": {
+            "type": "string",
+            "description": "Currency recorded on invoices. Defaults to the Syrian pound.",
+            "enum": [
+              "USD",
+              "SYP"
+            ],
+            "example": "SYP"
+          },
+          "category": {
+            "type": "string",
+            "description": "Product category",
+            "enum": [
+              "NATIONAL_MEDICINE",
+              "FOREIGN_MEDICINE",
+              "ACCESSORY"
+            ],
+            "example": "NATIONAL_MEDICINE"
+          },
+          "saleUnit": {
+            "type": "string",
+            "description": "Sale unit",
+            "enum": [
+              "PACK",
+              "BOX",
+              "SACHET"
+            ],
+            "example": "PACK"
+          },
+          "offerActive": {
+            "type": "boolean",
+            "description": "Whether this product has an offer",
+            "example": false
+          },
+          "offerPaidUnits": {
+            "type": "number",
+            "description": "Paid units required for the offer",
+            "example": 4
+          },
+          "offerFreeUnits": {
+            "type": "number",
+            "description": "Free units granted by the offer",
+            "example": 1
+          },
+          "offerStartsAt": {
+            "type": "string",
+            "description": "Offer start date",
+            "example": "2026-11-01T00:00:00.000Z"
+          },
+          "offerEndsAt": {
+            "type": "string",
+            "description": "Offer end date",
+            "example": "2026-12-01T00:00:00.000Z"
+          },
+          "stocks": {
+            "description": "Warehouse quantities. One warehouse is primary.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductStockRequestDto"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "barcode",
+          "manufacturerId",
+          "activeIngredient",
+          "minimumOrderQuantity",
+          "maximumOrderQuantity",
+          "lowQuantityThreshold",
+          "pharmacyPriceUsd",
+          "consumerPriceUsd",
+          "category",
+          "saleUnit",
+          "stocks"
+        ]
+      },
+      "UpdateProductRequestDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Product name",
+            "example": "Paracetamol 500"
+          },
+          "barcode": {
+            "type": "string",
+            "description": "Product barcode",
+            "example": "6281000000001"
+          },
+          "manufacturerId": {
+            "type": "number",
+            "description": "Selected manufacturer",
+            "example": 1
+          },
+          "activeIngredient": {
+            "type": "string",
+            "description": "Active ingredient",
+            "example": "Paracetamol"
+          },
+          "imageUrl": {
+            "type": "object",
+            "description": "Product image address. Null clears it.",
+            "example": "https://cdn.example.com/paracetamol.png",
+            "nullable": true
+          },
+          "minimumOrderQuantity": {
+            "type": "number",
+            "description": "Minimum quantity that can be ordered",
+            "example": 1
+          },
+          "maximumOrderQuantity": {
+            "type": "number",
+            "description": "Maximum paid quantity that can be ordered",
+            "example": 100
+          },
+          "lowQuantityThreshold": {
+            "type": "number",
+            "description": "Primary-warehouse quantity that shows a limited-stock alert",
+            "example": 5
+          },
+          "availability": {
+            "type": "string",
+            "description": "Whether the product can currently be ordered",
+            "enum": [
+              "AVAILABLE",
+              "UNAVAILABLE"
+            ],
+            "example": "AVAILABLE"
+          },
+          "status": {
+            "type": "string",
+            "description": "Whether ordering this product is enabled",
+            "enum": [
+              "ACTIVE",
+              "DISABLED"
+            ],
+            "example": "ACTIVE"
+          },
+          "pharmacyPriceUsd": {
+            "type": "string",
+            "description": "Pharmacy selling price in US dollars",
+            "example": "2.50"
+          },
+          "pharmacyPriceSyp": {
+            "type": "string",
+            "description": "Pharmacy selling price in Syrian pounds",
+            "example": "40000"
+          },
+          "consumerPriceUsd": {
+            "type": "string",
+            "description": "Suggested consumer price in US dollars",
+            "example": "3.00"
+          },
+          "consumerPriceSyp": {
+            "type": "string",
+            "description": "Suggested consumer price in Syrian pounds",
+            "example": "50000"
+          },
+          "calculateSypFromRate": {
+            "type": "boolean",
+            "description": "Calculate Syrian-pound prices from the exchange rate",
+            "example": true
+          },
+          "invoiceCurrency": {
+            "type": "string",
+            "description": "Currency recorded on invoices",
+            "enum": [
+              "USD",
+              "SYP"
+            ],
+            "example": "SYP"
+          },
+          "category": {
+            "type": "string",
+            "description": "Product category",
+            "enum": [
+              "NATIONAL_MEDICINE",
+              "FOREIGN_MEDICINE",
+              "ACCESSORY"
+            ],
+            "example": "FOREIGN_MEDICINE"
+          },
+          "saleUnit": {
+            "type": "string",
+            "description": "Sale unit",
+            "enum": [
+              "PACK",
+              "BOX",
+              "SACHET"
+            ],
+            "example": "BOX"
+          },
+          "offerActive": {
+            "type": "boolean",
+            "description": "Whether this product has an offer",
+            "example": true
+          },
+          "offerPaidUnits": {
+            "type": "number",
+            "description": "Paid units required for the offer",
+            "example": 4
+          },
+          "offerFreeUnits": {
+            "type": "number",
+            "description": "Free units granted by the offer",
+            "example": 1
+          },
+          "offerStartsAt": {
+            "type": "string",
+            "description": "Offer start date",
+            "example": "2026-11-01T00:00:00.000Z"
+          },
+          "offerEndsAt": {
+            "type": "string",
+            "description": "Offer end date",
+            "example": "2026-12-01T00:00:00.000Z"
+          }
+        }
+      },
+      "ReplaceProductStocksRequestDto": {
+        "type": "object",
+        "properties": {
+          "stocks": {
+            "description": "Warehouse quantities that replace the current links",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductStockRequestDto"
+            }
+          }
+        },
+        "required": [
+          "stocks"
+        ]
+      },
+      "UpdateProductStockQuantityRequestDto": {
+        "type": "object",
+        "properties": {
+          "quantity": {
+            "type": "number",
+            "description": "Physical quantity in this warehouse",
+            "example": 40
+          }
+        },
+        "required": [
+          "quantity"
+        ]
+      },
+      "ChangePrimaryWarehouseRequestDto": {
+        "type": "object",
+        "properties": {
+          "warehouseId": {
+            "type": "number",
+            "description": "Warehouse already linked to the product",
+            "example": 2
+          }
+        },
+        "required": [
+          "warehouseId"
+        ]
+      },
+      "CreateRejectionReasonRequestDto": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "description": "Reason shown when an invoice is rejected",
+            "example": "Product is out of stock"
+          }
+        },
+        "required": [
+          "label"
+        ]
+      },
+      "UpdateRejectionReasonRequestDto": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "description": "Reason shown when an invoice is rejected",
+            "example": "Quantity is not available"
+          }
+        },
+        "required": [
+          "label"
+        ]
+      },
+      "UpdateRejectionReasonStatusRequestDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Next rejection reason status",
+            "enum": [
+              "ACTIVE",
+              "DISABLED"
+            ],
+            "example": "DISABLED"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "ReturnInvoiceRequestDto": {
+        "type": "object",
+        "properties": {
+          "invoiceId": {
+            "type": "number",
+            "description": "Invoice to return",
+            "example": 1
+          }
+        },
+        "required": [
+          "invoiceId"
+        ]
+      },
+      "CreateWarehouseRequestDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Warehouse name",
+            "example": "Damascus Central"
+          },
+          "address": {
+            "type": "string",
+            "description": "Warehouse address",
+            "example": "Industrial Zone, Damascus"
+          }
+        },
+        "required": [
+          "name",
+          "address"
+        ]
+      },
+      "UpdateWarehouseRequestDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Warehouse name",
+            "example": "Damascus Central"
+          },
+          "address": {
+            "type": "string",
+            "description": "Warehouse address",
+            "example": "Industrial Zone, Damascus"
+          }
+        }
+      }
+    }
+  }
+}

@@ -116,6 +116,17 @@ describe('Delivery assignments', () => {
     expect(delivered.status).toBe(200);
     expect(readString(delivered.body, 'invoiceStatus')).toBe('DELIVERED_PAID');
     expect(readString(delivered.body, 'recipientName')).toBe('Lina Hassan');
+    const sameResult = await request(baseUrl, `/driver/deliveries/${firstInvoiceId}/result`, {
+      method: 'POST',
+      token: driverToken,
+      body: { result: 'DELIVERED_PAID', recipientName: 'Lina Hassan', note: 'Paid in cash' },
+    });
+    expect(sameResult.status).toBe(200);
+    expect(readNumber(sameResult.body, 'id')).toBe(readNumber(delivered.body, 'id'));
+    expect(await readStock()).toEqual({ quantity: 6, reservedQuantity: 0, availableQuantity: 6 });
+    const position = await request(baseUrl, `/admin/drivers/${driverId}/settlement`, { token: adminToken });
+    expect(readArray(position.body, 'collections')).toHaveLength(1);
+    expect(readString(readArray(position.body, 'holdings')[0], 'held')).toBe('60000.00');
     const repeated = await request(baseUrl, `/driver/deliveries/${firstInvoiceId}/result`, {
       method: 'POST',
       token: driverToken,

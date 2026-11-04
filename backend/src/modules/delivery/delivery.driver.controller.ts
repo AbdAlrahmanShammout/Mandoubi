@@ -42,7 +42,7 @@ export class DeliveryDriverController {
    */
   @Post(':invoiceId/result')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Record a delivery result' })
+  @ApiOperation({ summary: 'Record a delivery result. Submitting the same result again does not record another collection.' })
   async record(@LoggedInUser() currentUser: Principal, @Param('invoiceId', ParseIntPipe) invoiceId: number, @Body() body: RecordDeliveryResultRequestDto): Promise<DeliveryEventResponse> {
     const driverId = await this.readDriverId(currentUser.id);
     const recorded = await this.deliveryService.recordResult({ invoiceId, driverId, actorUserId: currentUser.id, ...body });
