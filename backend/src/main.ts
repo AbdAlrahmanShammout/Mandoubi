@@ -21,7 +21,7 @@ export async function configureApp(app: NestExpressApplication): Promise<void> {
   applySecurityHeaders(app, swaggerConfig);
   app.enableCors({
     origin: [...appConfig.allowedOrigins],
-    methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
     maxAge: CORS_PREFLIGHT_MAX_AGE_SECONDS,

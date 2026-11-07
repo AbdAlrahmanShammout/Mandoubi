@@ -1,0 +1,23 @@
+---
+description: Mark a roadmap task done in the canvas as soon as that task is finished
+alwaysApply: true
+---
+
+# Roadmap status
+
+When a task from the project roadmap is finished, update its saved checkbox in the same turn, before reporting the task as done.
+
+The roadmap is [project-roadmaps.canvas.tsx](/Users/abdshammout/.cursor/projects/Users-abdshammout-abd-app-Pharma-Distribution/canvases/project-roadmaps.canvas.tsx). Completion is stored beside it in `project-roadmaps.canvas.data.json`.
+
+- The state key is `completed-tasks`.
+- Each task key is `roadmapId/areaId/title`, for example `backend/b1/Bootstrap, config, and database provider`.
+- Set that key to `true`. Read the file first and merge; do not drop other keys.
+- The file is a flat JSON object. `completed-tasks` is one property whose value is the map of task keys.
+
+```json
+{
+  "completed-tasks": {
+    "backend/b1/Bootstrap, config, and database provider": true
+  }
+}
+```

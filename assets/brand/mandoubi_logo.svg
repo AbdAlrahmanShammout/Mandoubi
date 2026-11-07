@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%">
+  <defs>
+    <path id="petal" d="M 96,-34 C 98,-36 102,-36 104,-34 L 122,-16 C 138,0 138,16 122,32 L 104,50 C 102,52 98,52 96,50 L 78,32 C 62,16 62,0 78,-16 Z" />
+  </defs>
+
+  <g fill="#EFEFEF">
+    <use href="#petal" transform="translate(0, 42)" />
+    <use href="#petal" transform="translate(0, 142)" />
+  </g>
+
+  <g fill="#68CC9B">
+    <use href="#petal" transform="translate(-50, 92)" />
+    <use href="#petal" transform="translate(50, 92)" />
+  </g>
+</svg>
