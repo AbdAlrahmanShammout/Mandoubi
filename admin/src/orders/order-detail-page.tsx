@@ -100,7 +100,7 @@ function OrderSummary({ order }: { readonly order: OrderRecord }): ReactElement 
             <small>طلب #{order.id}</small>
             <h5>{order.pharmacyName}</h5>
             <p>
-              <Icon name="user" size={14} /> معرّف الصيدلية {order.pharmacyId} · {formatDateTime(order.createdAt)}
+              <Icon name="user" size={14} /> معرّف الصيدلية {order.pharmacyId} · {formatDateTime(order.createdAt)} · <Link to={`/accounts/pharmacies/${order.pharmacyId}`}>كشف الحساب</Link>
             </p>
           </div>
         </div>

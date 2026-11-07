@@ -8,6 +8,7 @@ import { CategoryLabel } from '@/components/category-label';
 import { Badge } from '@/components/badge';
 import { useConfirm } from '@/components/confirm-dialog';
 import { Icon } from '@/components/icon';
+import { InvoiceDispatch } from '@/orders/invoice-dispatch';
 import { buildRejectInput, formatMoney, invoiceStatusLabel, readLineAvailability } from '@/orders/order-labels';
 
 const CUSTOM_REASON_MAX_LENGTH = 500;
@@ -196,18 +197,11 @@ export function InvoiceReview({ invoice, products, warehouses, reasons, onChange
           </div>
         </div>
       )}
-      {current.status !== 'PENDING' && current.status !== 'REJECTED' && <p className="invoice-status-note">{statusNote(current.status)}</p>}
+      {current.status !== 'PENDING' && current.status !== 'REJECTED' && (
+        <InvoiceDispatch invoice={current} onChanged={() => { loaded.reload(); onChanged(); }} />
+      )}
       {errorMessage && <p className="form-error invoice-action-error">{errorMessage}</p>}
     </section>
   );
 }
 
-function statusNote(status: InvoiceRecord['status']): string {
-  if (status === 'APPROVED') {
-    return 'الفاتورة موافق عليها. إسنادها لسائق يُبنى في قسم التوزيع.';
-  }
-  if (status === 'RETURNED_TO_WAREHOUSE') {
-    return 'الفاتورة عادت للمستودع. إرسالها مرة أخرى يُبنى في قسم التوزيع.';
-  }
-  return 'لا يوجد قرار مراجعة لهذه الحالة. نتيجة التسليم يسجّلها السائق.';
-}

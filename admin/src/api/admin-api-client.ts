@@ -3,8 +3,15 @@ import type {
   ExchangeRateRecord,
   ManufacturerRecord,
   NotificationRecord,
+  DriverPosition,
+  DriverRecord,
+  DriverSettlementInput,
+  DriverSettlementRecord,
   InvoiceRecord,
   OrderRecord,
+  PaymentRecord,
+  PharmacyStatement,
+  ReceiptInput,
   ProductRecord,
   RejectInvoiceInput,
   RejectionReasonRecord,
@@ -174,6 +181,61 @@ export function rejectInvoice(id: number, input: RejectInvoiceInput): Promise<In
  */
 export function listRejectionReasons(): Promise<RejectionReasonRecord[]> {
   return request<RejectionReasonRecord[]>('/admin/rejection-reasons');
+}
+
+/**
+ * Assigns an approved invoice, or sends a returned invoice out again.
+ * Calls the admin deliveries controller.
+ */
+export function assignDelivery(invoiceId: number, driverId: number): Promise<unknown> {
+  return request<unknown>('/admin/deliveries', { method: 'POST', body: { invoiceId, driverId } });
+}
+
+/**
+ * Returns one unpaid or undelivered invoice to the warehouse stored on it.
+ * Calls the admin returns controller.
+ */
+export function returnInvoice(invoiceId: number): Promise<{ readonly invoiceId: number; readonly status: string }> {
+  return request<{ readonly invoiceId: number; readonly status: string }>('/admin/returns', { method: 'POST', body: { invoiceId } });
+}
+
+/**
+ * Reads one driver profile. There is no driver list endpoint.
+ */
+export function getDriver(id: number): Promise<DriverRecord> {
+  return request<DriverRecord>(`/admin/drivers/${id}`);
+}
+
+/**
+ * Reads a pharmacy statement and the invoices a receipt can cover.
+ * Calls the admin pharmacy statement controller.
+ */
+export function getPharmacyStatement(pharmacyId: number): Promise<PharmacyStatement> {
+  return request<PharmacyStatement>(`/admin/pharmacies/${pharmacyId}/statement`);
+}
+
+/**
+ * Records a receipt that must equal the full total of the selected invoices.
+ * Calls the admin receipts controller.
+ */
+export function recordReceipt(input: ReceiptInput): Promise<PaymentRecord> {
+  return request<PaymentRecord>('/admin/receipts', { method: 'POST', body: input });
+}
+
+/**
+ * Reads assignment counts and the collections a driver still holds.
+ * Calls the admin driver settlement controller.
+ */
+export function getDriverPosition(driverId: number): Promise<DriverPosition> {
+  return request<DriverPosition>(`/admin/drivers/${driverId}/settlement`);
+}
+
+/**
+ * Records a handover of whole driver collections.
+ * Calls the admin driver settlement controller.
+ */
+export function recordDriverSettlement(input: DriverSettlementInput): Promise<DriverSettlementRecord> {
+  return request<DriverSettlementRecord>('/admin/driver-settlements', { method: 'POST', body: input });
 }
 
 interface RequestOptions {

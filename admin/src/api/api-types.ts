@@ -206,6 +206,123 @@ export interface RejectInvoiceInput {
   readonly customReason?: string;
 }
 
+export interface DriverRecord {
+  readonly id: number;
+  readonly name: string;
+  readonly mobileNumber: string;
+  readonly status: 'ACTIVE' | 'DISABLED';
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
+export type PaymentMethod = 'CASH' | 'BANK_TRANSFER';
+export type StatementEntryKind = 'CHARGE' | 'RECEIPT' | 'DRIVER_COLLECTION';
+
+export interface StatementEntry {
+  readonly kind: StatementEntryKind;
+  readonly currency: InvoiceCurrency;
+  readonly amount: string;
+  readonly occurredAt: string;
+  readonly invoiceId: number | null;
+  readonly paymentId: number | null;
+}
+
+export interface CurrencyStatement {
+  readonly currency: InvoiceCurrency;
+  readonly openingBalance: string;
+  readonly charges: string;
+  readonly payments: string;
+  readonly outstanding: string;
+  readonly entries: readonly StatementEntry[];
+}
+
+export interface UnpaidInvoice {
+  readonly invoiceId: number;
+  readonly orderId: number;
+  readonly currency: InvoiceCurrency;
+  readonly amount: string;
+  readonly deliveredAt: string;
+  readonly dueDate: string;
+  readonly overdue: boolean;
+}
+
+export interface PharmacyStatement {
+  readonly pharmacyId: number;
+  readonly pharmacyName: string;
+  readonly currencies: readonly CurrencyStatement[];
+  readonly unpaidInvoices: readonly UnpaidInvoice[];
+}
+
+export interface ReceiptInput {
+  readonly pharmacyId: number;
+  readonly currency: InvoiceCurrency;
+  readonly amount: string;
+  readonly receivedByName: string;
+  readonly paymentMethod: PaymentMethod;
+  readonly invoiceIds: readonly number[];
+}
+
+export interface PaymentRecord {
+  readonly id: number;
+  readonly pharmacyId: number;
+  readonly kind: 'RECEIPT' | 'DRIVER_COLLECTION';
+  readonly currency: InvoiceCurrency;
+  readonly amount: string;
+  readonly receivedByName: string;
+  readonly paymentMethod: PaymentMethod;
+  readonly driverId: number | null;
+  readonly occurredAt: string;
+  readonly invoiceIds: readonly number[];
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
+export interface CurrencyHolding {
+  readonly currency: InvoiceCurrency;
+  readonly collected: string;
+  readonly handedOver: string;
+  readonly held: string;
+}
+
+export interface DriverCollection {
+  readonly paymentId: number;
+  readonly currency: InvoiceCurrency;
+  readonly amount: string;
+  readonly settled: boolean;
+  readonly invoiceIds: readonly number[];
+}
+
+export interface DriverPosition {
+  readonly driverId: number;
+  readonly driverName: string;
+  readonly assignedCount: number;
+  readonly deliveredPaidCount: number;
+  readonly deliveredUnpaidCount: number;
+  readonly notDeliveredCount: number;
+  readonly holdings: readonly CurrencyHolding[];
+  readonly collections: readonly DriverCollection[];
+}
+
+export interface DriverSettlementInput {
+  readonly driverId: number;
+  readonly currency: InvoiceCurrency;
+  readonly amount: string;
+  readonly receivedByName: string;
+  readonly paymentIds: readonly number[];
+}
+
+export interface DriverSettlementRecord {
+  readonly id: number;
+  readonly driverId: number;
+  readonly currency: InvoiceCurrency;
+  readonly amount: string;
+  readonly receivedByName: string;
+  readonly occurredAt: string;
+  readonly paymentIds: readonly number[];
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
 export interface FieldError {
   readonly field: string;
   readonly messages: readonly string[];

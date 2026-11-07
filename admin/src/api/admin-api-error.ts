@@ -65,6 +65,42 @@ export function describeAdminError(error: unknown): string {
   if (error.code === 'REJECTION_REASON_INACTIVE') {
     return 'سبب الرفض المختار متوقف. اختر سبباً فعّالاً أو ارفض بدون سبب.';
   }
+  if (error.code === 'DRIVER_INACTIVE') {
+    return 'حساب السائق متوقف ولا يمكن إسناد فاتورة إليه.';
+  }
+  if (error.code === 'INVOICE_NOT_APPROVED') {
+    return 'لا يمكن إسناد إلا فاتورة موافق عليها أو فاتورة عادت للمستودع.';
+  }
+  if (error.code === 'INVOICE_ALREADY_ASSIGNED') {
+    return 'هذه الفاتورة مسندة لسائق مسبقاً.';
+  }
+  if (error.code === 'RETURN_NOT_ALLOWED') {
+    return 'لا يمكن إرجاع هذه الفاتورة. الإرجاع مسموح فقط إذا لم تُسلَّم أو سُلّمت دون تحصيل.';
+  }
+  if (error.code === 'RETURN_ALREADY_RECORDED') {
+    return 'أُرجعت هذه الفاتورة إلى المستودع مسبقاً.';
+  }
+  if (error.code === 'RECEIPT_AMOUNT_MISMATCH') {
+    return 'مبلغ الإيصال يجب أن يساوي مجموع الفواتير المختارة كاملاً.';
+  }
+  if (error.code === 'INVOICE_NOT_DUE' || error.code === 'INVOICE_ALREADY_PAID') {
+    return 'الإيصال يغطي فواتير سُلّمت ولم تُحصَّل بعد فقط.';
+  }
+  if (error.code === 'INVOICE_CURRENCY_MISMATCH') {
+    return 'كل الفواتير في الإيصال يجب أن تكون بعملة واحدة.';
+  }
+  if (error.code === 'INVOICE_PHARMACY_MISMATCH') {
+    return 'إحدى الفواتير لا تتبع هذه الصيدلية.';
+  }
+  if (error.code === 'SETTLEMENT_AMOUNT_MISMATCH') {
+    return 'مبلغ التسليم يجب أن يساوي التحصيلات المختارة كاملة.';
+  }
+  if (error.code === 'SETTLEMENT_PAYMENT_MISMATCH') {
+    return 'التسليم يشمل تحصيلات هذا السائق وبنفس العملة فقط.';
+  }
+  if (error.code === 'COLLECTION_ALREADY_SETTLED') {
+    return 'إحدى التحصيلات سُلّمت للإدارة مسبقاً.';
+  }
   if (error.message.trim().length > 0 && error.statusCode < 500) {
     return error.message;
   }

@@ -80,6 +80,24 @@ export function fromDateTimeLocal(value: string): string | null {
 }
 
 /**
+ * Adds decimal money strings in cents so a receipt total stays exact.
+ */
+export function sumMoney(amounts: readonly string[]): string {
+  const cents = amounts.reduce((total, amount) => total + readCents(amount), 0);
+  const absolute = Math.abs(cents);
+  const sign = cents < 0 ? '-' : '';
+  return `${sign}${Math.floor(absolute / 100)}.${String(absolute % 100).padStart(2, '0')}`;
+}
+
+function readCents(amount: string): number {
+  const [whole, fraction = ''] = amount.split('.');
+  const negative = whole.startsWith('-');
+  const digits = negative ? whole.slice(1) : whole;
+  const cents = Number(digits || '0') * 100 + Number(`${fraction}00`.slice(0, 2));
+  return negative ? -cents : cents;
+}
+
+/**
  * Arabic date and time for record timestamps.
  */
 export function formatDateTime(value: string): string {

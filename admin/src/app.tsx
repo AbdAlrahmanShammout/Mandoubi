@@ -11,6 +11,9 @@ import { WarehouseFormPage } from '@/catalog/warehouse-form-page';
 import { WarehouseListPage } from '@/catalog/warehouse-list-page';
 import { AppShell } from '@/shell/app-shell';
 import { HomePage } from '@/shell/home-page';
+import { AccountsPage } from '@/accounts/accounts-page';
+import { DriverSettlementPage } from '@/accounts/driver-settlement-page';
+import { PharmacyStatementPage } from '@/accounts/pharmacy-statement-page';
 import { OrderDetailPage } from '@/orders/order-detail-page';
 import { OrderListPage } from '@/orders/order-list-page';
 import { PlaceholderPage } from '@/shell/placeholder-page';
@@ -37,7 +40,9 @@ export function AppRoutes(): ReactElement {
         <Route path="orders" element={<OrderListPage />} />
         <Route path="orders/:orderId" element={<OrderDetailPage />} />
         <Route path="orders/:orderId/invoices/:invoiceId" element={<OrderDetailPage />} />
-        <Route path="accounts" element={<PlaceholderPage crumb="الحسابات" title="الحسابات" description="حسابات الصيدليات والسائقين تُبنى بعد الكتالوج." />} />
+        <Route path="accounts" element={<AccountsPage />} />
+        <Route path="accounts/pharmacies/:pharmacyId" element={<PharmacyStatementPage />} />
+        <Route path="accounts/drivers/:driverId" element={<DriverSettlementPage />} />
         <Route path="reports" element={<PlaceholderPage crumb="التقارير" title="التقارير" description="تقارير المبيعات والمخزون والديون والسائقين تُبنى لاحقاً." />} />
         <Route path="notifications" element={<PlaceholderPage crumb="الإشعارات" title="الإشعارات" description="صندوق إشعارات الإدارة يُبنى مع التقارير." />} />
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -479,6 +479,55 @@ a.icon-action {
   font-size: 14px;
 }
 
+.admin-app .selectable-invoices header,
+.admin-app .selectable-invoices b,
+.admin-app .selectable-invoices strong,
+.admin-app .full-payment-rule {
+  font-size: 14px;
+}
+
+.admin-app .selectable-invoices small {
+  font-size: 12px;
+}
+
+.admin-app .driver-assignment .form-error,
+.admin-app .driver-assignment .invoice-status-note {
+  grid-column: 1 / -1;
+}
+
+.admin-app .accounts-entry {
+  margin: 20px 22px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: stretch;
+}
+
+.admin-app .accounts-entry h5 {
+  margin-bottom: 6px;
+  font: 600 16px 'Noto Kufi Arabic', sans-serif;
+}
+
+.admin-app .accounts-entry .image-note {
+  min-height: 48px;
+}
+
+.admin-app .accounts-entry .ds-btn {
+  margin-top: 12px;
+}
+
+.admin-app .money-summary {
+  margin: 18px 28px 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.admin-app .money-summary p {
+  margin-top: 4px;
+  font-size: 14px;
+}
+
 .admin-app .order-tools {
   grid-template-columns: 1.4fr 0.7fr 0.55fr;
 }
