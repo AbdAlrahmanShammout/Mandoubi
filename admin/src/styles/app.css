@@ -831,3 +831,105 @@ a.icon-action {
 .admin-app .invoice-open > header {
   gap: 12px;
 }
+
+.admin-app {
+  --radius-card: 16px;
+  --radius-control: 10px;
+}
+
+.admin-app :is(
+  .catalog-table-card,
+  .catalog-empty-state,
+  .catalog-form-section,
+  .order-summary,
+  .invoice-list,
+  .invoice-open,
+  .shell-welcome > div,
+  .shell-hint,
+  .ds-dialog,
+  .ds-banner,
+  .selectable-invoices,
+  .snapshot-banner,
+  .action-form,
+  .switch-row,
+  .entity-status-row,
+  .rate-card,
+  .current-product-image,
+  .ds-uploader,
+  .empty-report-period,
+  .confirm-state
+) {
+  border-radius: var(--radius-card);
+}
+
+.admin-app :is(
+  .catalog-form-section,
+  .order-summary,
+  .shell-welcome > div,
+  .ds-dialog,
+  .ds-banner,
+  .selectable-invoices,
+  .rate-card,
+  .confirm-state
+) {
+  overflow: hidden;
+}
+
+.admin-app :where(
+  input:not([type='checkbox']):not([type='radio']):not([type='file']),
+  select,
+  textarea,
+  button:not(.toggle):not(.icon-button):not(.signout),
+  a.ds-btn,
+  .next-task a,
+  .orders-search,
+  .input-with-icon,
+  .currency-input,
+  .ds-filter,
+  .radio,
+  .category-label,
+  .orders-search em
+) {
+  border-radius: var(--radius-control);
+}
+
+.admin-app :where(.orders-search, .input-with-icon, .currency-input, .ds-filter) :where(input, select) {
+  border-radius: 0;
+}
+
+.admin-app .invoice-list {
+  background: var(--surface);
+}
+
+.admin-app .invoice-list button {
+  border-radius: 0;
+}
+
+.admin-app .invoice-list button:last-child {
+  border-end-start-radius: 15px;
+  border-end-end-radius: 15px;
+  overflow: hidden;
+}
+
+.admin-app .invoice-list button.active::before {
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+}
+
+.admin-app :is(.orders-search, .input-with-icon, .currency-input) {
+  overflow: hidden;
+}
+
+.admin-app .side-nav nav a,
+.admin-app .table-thumbnail,
+.admin-app .uploader-preview {
+  border-radius: var(--radius-control);
+}
+
+.admin-app .side-nav,
+.admin-app .signin-ops .signin-aside {
+  border-start-end-radius: 24px;
+  border-end-end-radius: 24px;
+}
