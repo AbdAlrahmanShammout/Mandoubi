@@ -168,8 +168,8 @@ function productBody(manufacturerId: number, primaryWarehouseId: number, otherWa
 }
 
 async function findProductId(baseUrl: string, token: string, barcode: string): Promise<number> {
-  const listed = await request(baseUrl, '/admin/products', { token });
-  const products = Array.isArray(listed.body) ? listed.body : [];
+  const listed = await request(baseUrl, `/admin/products?search=${encodeURIComponent(barcode)}&limit=20`, { token });
+  const products = isRecord(listed.body) && Array.isArray(listed.body.items) ? listed.body.items : [];
   const match = products.find((product) => isRecord(product) && product.barcode === barcode);
   if (!isRecord(match) || typeof match.id !== 'number') {
     throw new Error(`Product ${barcode} was not created`);

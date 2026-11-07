@@ -29,6 +29,18 @@ export function readReportPeriod(fromDate: string, toDate: string): ReportPeriod
   return { from, to };
 }
 
+/**
+ * Inclusive local-day bounds for one calendar date.
+ */
+export function localDayRange(value: string): { readonly from: string; readonly to: string } | null {
+  const from = boundLocalDay(value, false);
+  const to = boundLocalDay(value, true);
+  if (!from || !to) {
+    return null;
+  }
+  return { from, to };
+}
+
 function boundLocalDay(value: string, isEnd: boolean): string | null {
   if (!DATE_KEY.test(value)) {
     return null;

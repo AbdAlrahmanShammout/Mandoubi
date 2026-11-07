@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { ResourceNotFoundException } from '@/common/exceptions/resource-not-found.exception';
+import { Page, normalizePage } from '@/common/paging/page';
 import { UpdateManufacturerRepoInput, UpdateManufacturerStatusRepoInput } from '@/modules/manufacturer/defs/manufacturer-repository.defs';
 import { ManufacturerEntity } from '@/modules/manufacturer/entity/manufacturer.entity';
 import { ManufacturerStatus } from '@/modules/manufacturer/enum/manufacturer-status.enum';
-import { ManufacturerRepository } from '@/modules/manufacturer/repository/manufacturer.repository';
+import { ManufacturerRepository, ManufacturerSearchInput } from '@/modules/manufacturer/repository/manufacturer.repository';
 
 /**
  * Manufacturer records selected when a product is created.
@@ -32,6 +33,14 @@ export class ManufacturerService {
    */
   async listManufacturers(): Promise<ManufacturerEntity[]> {
     return this.manufacturerRepository.list();
+  }
+  /**
+   * Searches manufacturers on the server and returns one page plus the match count.
+   */
+  async searchManufacturers(input: Omit<ManufacturerSearchInput, 'limit' | 'offset'> & { readonly limit?: number; readonly offset?: number }): Promise<Page<ManufacturerEntity>> {
+    const page = normalizePage(input.limit, input.offset);
+    const result = await this.manufacturerRepository.search({ ...input, ...page });
+    return { ...result, ...page };
   }
   /**
    * Changes the manufacturer name.

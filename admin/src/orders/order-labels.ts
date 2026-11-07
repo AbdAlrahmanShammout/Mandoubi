@@ -1,4 +1,5 @@
 import type { InvoiceItemRecord, InvoiceRecord, InvoiceStatus, MoneyTotal, OrderStatus, ProductRecord, RejectInvoiceInput, WarehouseRecord } from '@/api/api-types';
+import { formatGroupedDecimal } from '@/format/format-value';
 
 const ORDER_STATUS_LABELS: Record<OrderStatus, readonly [string, string]> = {
   PENDING: ['قيد المراجعة', 'amber'],
@@ -44,7 +45,7 @@ export function invoiceStatusLabel(status: InvoiceStatus): readonly [string, str
  * Amount plus its currency, as stored on the invoice.
  */
 export function formatMoney(amount: string, currency: MoneyTotal['currency']): string {
-  return `${amount} ${currency === 'USD' ? 'USD' : 'ل.س'}`;
+  return `${formatGroupedDecimal(amount)} ${currency === 'USD' ? 'USD' : 'ل.س'}`;
 }
 
 /**

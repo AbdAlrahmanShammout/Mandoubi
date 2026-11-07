@@ -1,7 +1,9 @@
-import { Controller, Get, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Roles } from '@/common/decorators/route/roles.decorator';
 import { RolesGuard } from '@/common/guards/roles.guard';
+import { PageResponse } from '@/common/paging/page.response';
+import { ListOrdersQueryDto } from '@/modules/order/dto/request/list-orders-query.dto';
 import { OrderResponse } from '@/modules/order/dto/response/model/order.response';
 import { OrderService } from '@/modules/order/order.service';
 import { AccountRole } from '@/modules/user/enum/account-role.enum';
@@ -18,13 +20,20 @@ import { JwtAuthGuard } from '@/modules/user/guards/jwt-auth.guard';
 export class OrderAdminController {
   constructor(private readonly orderService: OrderService) {}
   /**
-   * Lists every submitted order and the status of each invoice.
+   * Searches submitted orders and returns one page.
    */
   @Get()
-  @ApiOperation({ summary: 'List orders for review' })
-  async list(): Promise<OrderResponse[]> {
-    const orders = await this.orderService.listOrders();
-    return orders.map((order) => new OrderResponse(order));
+  @ApiOperation({ summary: 'Search orders for review' })
+  async list(@Query() query: ListOrdersQueryDto): Promise<PageResponse<OrderResponse>> {
+    const page = await this.orderService.searchOrders({
+      search: query.search,
+      status: query.status,
+      createdFrom: query.createdFrom ? new Date(query.createdFrom) : undefined,
+      createdTo: query.createdTo ? new Date(query.createdTo) : undefined,
+      limit: query.limit,
+      offset: query.offset,
+    });
+    return new PageResponse(page.items.map((order) => new OrderResponse(order)), page.total, page.limit, page.offset);
   }
   /**
    * Opens one order and its category invoices.

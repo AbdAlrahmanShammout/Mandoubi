@@ -9,7 +9,7 @@ interface ServerSearchProps {
 }
 
 /**
- * Search field. The current API returns the full list, so the page filters that response.
+ * Search field. The value is sent to the server with the current page.
  */
 export function ServerSearch({ label, placeholder, value, onChange }: ServerSearchProps): ReactElement {
   return (
@@ -19,7 +19,7 @@ export function ServerSearch({ label, placeholder, value, onChange }: ServerSear
         <small>{label}</small>
         <input value={value} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} />
       </span>
-      <em>بحث من القائمة المحمّلة</em>
+      <em>بحث في كل السجلات</em>
     </label>
   );
 }
@@ -33,7 +33,7 @@ interface PaginationProps {
 }
 
 /**
- * Page controls for a loaded admin list. The server does not page these lists yet.
+ * Page controls for a server-paged admin list.
  */
 export function Pagination({ page, pageSize, total, onPageChange, onPageSizeChange }: PaginationProps): ReactElement {
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
@@ -63,12 +63,4 @@ export function Pagination({ page, pageSize, total, onPageChange, onPageSizeChan
       </div>
     </div>
   );
-}
-
-/**
- * Slices a filtered list for the current page.
- */
-export function slicePage<T>(items: readonly T[], page: number, pageSize: number): readonly T[] {
-  const start = (page - 1) * pageSize;
-  return items.slice(start, start + pageSize);
 }

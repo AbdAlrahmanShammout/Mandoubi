@@ -2,13 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { TransactionRunner } from '@/common/base/transaction-runner';
 import { InvalidStateException } from '@/common/exceptions/invalid-state.exception';
 import { ResourceNotFoundException } from '@/common/exceptions/resource-not-found.exception';
+import { Page, normalizePage } from '@/common/paging/page';
 import { InvoiceService } from '@/modules/invoice/invoice.service';
 import { NotificationAudience } from '@/modules/notification/enum/notification-audience.enum';
 import { NotificationKind } from '@/modules/notification/enum/notification-kind.enum';
 import { NotificationService } from '@/modules/notification/notification.service';
 import { OrderEntity } from '@/modules/order/entity/order.entity';
 import { OrderLineInput, OrderableProduct, prepareOrderInvoices } from '@/modules/order/helpers/prepare-order-invoices.helper';
-import { OrderRepository } from '@/modules/order/repository/order.repository';
+import { OrderRepository, OrderSearchInput } from '@/modules/order/repository/order.repository';
 import { ProductEntity } from '@/modules/product/entity/product.entity';
 import { ProductService } from '@/modules/product/product.service';
 
@@ -61,6 +62,16 @@ export class OrderService {
    */
   async listOrders(): Promise<OrderEntity[]> {
     return this.orderRepository.list();
+  }
+  /**
+   * Searches orders on the server and returns one page plus the match count.
+   */
+  async searchOrders(input: Omit<OrderSearchInput, 'limit' | 'offset'> & { readonly limit?: number; readonly offset?: number }): Promise<Page<OrderEntity>> {
+    const page = normalizePage(input.limit, input.offset);
+    const createdFrom = input.createdFrom;
+    const createdTo = input.createdTo;
+    const result = await this.orderRepository.search({ ...input, createdFrom, createdTo, ...page });
+    return { ...result, ...page };
   }
   /**
    * Lists the orders that belong to one pharmacy.

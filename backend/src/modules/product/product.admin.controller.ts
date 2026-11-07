@@ -1,10 +1,12 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { PageResponse } from '@/common/paging/page.response';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { LoggedInUser } from '@/common/decorators/requests/logged-in-user.decorator';
 import { Roles } from '@/common/decorators/route/roles.decorator';
 import { RolesGuard } from '@/common/guards/roles.guard';
 import { Principal } from '@/common/auth/principal.interface';
 import { ChangePrimaryWarehouseRequestDto } from '@/modules/product/dto/request/change-primary-warehouse-request.dto';
+import { ListProductsQueryDto } from '@/modules/product/dto/request/list-products-query.dto';
 import { CreateProductRequestDto } from '@/modules/product/dto/request/create-product-request.dto';
 import { ReplaceProductStocksRequestDto } from '@/modules/product/dto/request/replace-product-stocks-request.dto';
 import { UpdateProductRequestDto } from '@/modules/product/dto/request/update-product-request.dto';
@@ -34,13 +36,13 @@ export class ProductAdminController {
     return new ProductResponse(product);
   }
   /**
-   * Lists products.
+   * Searches products and returns one page.
    */
   @Get()
-  @ApiOperation({ summary: 'List products' })
-  async list(): Promise<ProductResponse[]> {
-    const products = await this.productService.listProducts();
-    return products.map((product) => new ProductResponse(product));
+  @ApiOperation({ summary: 'Search products' })
+  async list(@Query() query: ListProductsQueryDto): Promise<PageResponse<ProductResponse>> {
+    const page = await this.productService.searchProducts(query);
+    return new PageResponse(page.items.map((product) => new ProductResponse(product)), page.total, page.limit, page.offset);
   }
   /**
    * Reads one product and its warehouse quantities.

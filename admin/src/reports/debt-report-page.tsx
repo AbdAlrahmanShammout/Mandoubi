@@ -3,6 +3,7 @@ import { getDebtReport } from '@/api/admin-api-client';
 import { describeAdminError } from '@/api/admin-api-error';
 import { PageBanner, useLoad } from '@/catalog/page-state';
 import { Badge } from '@/components/badge';
+import { DetailParts } from '@/components/detail-parts';
 import { formatDateTime } from '@/format/format-value';
 import { formatMoney } from '@/orders/order-labels';
 import { defaultPeriodDates, readReportPeriod, type ReportPeriodInput } from '@/reports/report-period';
@@ -48,7 +49,7 @@ export function DebtReportPage(): ReactElement {
             <thead>
               <tr>
                 <th>الصيدلية</th>
-                <th>العملة</th>
+                <th className="cell-center">العملة</th>
                 <th>المتبقي</th>
               </tr>
             </thead>
@@ -58,7 +59,7 @@ export function DebtReportPage(): ReactElement {
                   <td>
                     <PharmacyLink pharmacyId={balance.pharmacyId} pharmacyName={balance.pharmacyName} />
                   </td>
-                  <td>{balance.currency === 'USD' ? 'USD' : 'ل.س'}</td>
+                  <td className="cell-center">{balance.currency === 'USD' ? 'USD' : 'ل.س'}</td>
                   <td>{formatMoney(balance.outstanding, balance.currency)}</td>
                 </tr>
               ))}
@@ -67,7 +68,7 @@ export function DebtReportPage(): ReactElement {
           <ReportSection title="فواتير سُلّمت ولم تُحصَّل" isEmpty={data.unpaidInvoices.length === 0} emptyLabel="لا فواتير مستحقة.">
             <thead>
               <tr>
-                <th>الفاتورة</th>
+                <th className="cell-center">الفاتورة</th>
                 <th>الصيدلية</th>
                 <th>المبلغ</th>
                 <th>الاستحقاق</th>
@@ -76,13 +77,18 @@ export function DebtReportPage(): ReactElement {
             <tbody>
               {data.unpaidInvoices.map((invoice) => (
                 <tr key={`${invoice.invoiceId}-${invoice.currency}`}>
-                  <td>#{invoice.invoiceId}</td>
+                  <td className="cell-center">#{invoice.invoiceId}</td>
                   <td>
                     <PharmacyLink pharmacyId={invoice.pharmacyId} pharmacyName={invoice.pharmacyName} />
                   </td>
                   <td>{formatMoney(invoice.amount, invoice.currency)}</td>
                   <td>
-                    {formatDateTime(invoice.dueDate)} {invoice.overdue && <Badge tone="red">متأخر</Badge>}
+                    <span>
+                      <DetailParts>
+                        <span>{formatDateTime(invoice.dueDate)}</span>
+                        {invoice.overdue ? <Badge tone="red">متأخر</Badge> : null}
+                      </DetailParts>
+                    </span>
                   </td>
                 </tr>
               ))}

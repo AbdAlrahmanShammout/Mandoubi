@@ -7,7 +7,7 @@ import { PrismaProviderService } from '@/providers/database/prisma/prisma-provid
 import { CreateWarehouseRepoInput, UpdateWarehouseRepoInput } from '@/modules/warehouse/defs/warehouse-repository.defs';
 import { WarehouseEntity } from '@/modules/warehouse/entity/warehouse.entity';
 import { WarehouseMapper } from '@/modules/warehouse/mapper/warehouse.mapper';
-import { WarehouseRepository } from '@/modules/warehouse/repository/warehouse.repository';
+import { WarehouseRepository, WarehouseSearchInput } from '@/modules/warehouse/repository/warehouse.repository';
 import { warehouseDetailsInclude } from '@/modules/warehouse/types/warehouse-details.include';
 
 /**
@@ -41,6 +41,24 @@ export class WarehousePrismaRepository extends WarehouseRepository {
       orderBy: { id: 'asc' },
     });
     return results.map((result) => WarehouseMapper.toEntity(result));
+  }
+  /** Searches the warehouse name, then returns one page. */
+  async search(input: WarehouseSearchInput): Promise<{ readonly items: readonly WarehouseEntity[]; readonly total: number }> {
+    const where: Prisma.WarehouseWhereInput = {
+      deletedAt: null,
+      ...(input.search ? { name: { contains: input.search, mode: 'insensitive' } } : {}),
+    };
+    const [results, total] = await this.prisma.$transaction([
+      this.prisma.warehouse.findMany({
+        where,
+        include: warehouseDetailsInclude,
+        orderBy: [{ name: 'asc' }, { id: 'asc' }],
+        take: input.limit,
+        skip: input.offset,
+      }),
+      this.prisma.warehouse.count({ where }),
+    ]);
+    return { items: results.map((result) => WarehouseMapper.toEntity(result)), total };
   }
   /** Updates name or address when the warehouse is still present. */
   async update(input: UpdateWarehouseRepoInput, context?: TransactionContext): Promise<WarehouseEntity | null> {

@@ -11,8 +11,12 @@ import type {
   DriverSettlementRecord,
   InvoiceRecord,
   OrderRecord,
+  OrderListQuery,
+  PageResult,
   PaymentRecord,
   PharmacyStatement,
+  ProductListQuery,
+  NamedListQuery,
   ReceiptInput,
   SalesReport,
   SalesReportQuery,
@@ -77,8 +81,14 @@ export async function signOutAdmin(): Promise<void> {
   clearSession();
 }
 
+const FULL_PAGE_LIMIT = 100;
+
+export function searchManufacturers(query: NamedListQuery): Promise<PageResult<ManufacturerRecord>> {
+  return request<PageResult<ManufacturerRecord>>(`/admin/manufacturers${toQuery(query)}`);
+}
+
 export function listManufacturers(): Promise<ManufacturerRecord[]> {
-  return request<ManufacturerRecord[]>('/admin/manufacturers');
+  return collectPages((offset) => searchManufacturers({ limit: FULL_PAGE_LIMIT, offset }));
 }
 
 export function getManufacturer(id: number): Promise<ManufacturerRecord> {
@@ -97,8 +107,12 @@ export function updateManufacturerStatus(id: number, status: 'ACTIVE' | 'DISABLE
   return request<ManufacturerRecord>(`/admin/manufacturers/${id}/status`, { method: 'PATCH', body: { status } });
 }
 
+export function searchWarehouses(query: NamedListQuery): Promise<PageResult<WarehouseRecord>> {
+  return request<PageResult<WarehouseRecord>>(`/admin/warehouses${toQuery(query)}`);
+}
+
 export function listWarehouses(): Promise<WarehouseRecord[]> {
-  return request<WarehouseRecord[]>('/admin/warehouses');
+  return collectPages((offset) => searchWarehouses({ limit: FULL_PAGE_LIMIT, offset }));
 }
 
 export function getWarehouse(id: number): Promise<WarehouseRecord> {
@@ -117,8 +131,12 @@ export function updateWarehouse(id: number, input: { readonly name: string; read
   return request<WarehouseRecord>(`/admin/warehouses/${id}`, { method: 'PATCH', body: input });
 }
 
+export function searchProducts(query: ProductListQuery): Promise<PageResult<ProductRecord>> {
+  return request<PageResult<ProductRecord>>(`/admin/products${toQuery(query)}`);
+}
+
 export function listProducts(): Promise<ProductRecord[]> {
-  return request<ProductRecord[]>('/admin/products');
+  return collectPages((offset) => searchProducts({ limit: FULL_PAGE_LIMIT, offset }));
 }
 
 export function getProduct(id: number): Promise<ProductRecord> {
@@ -149,8 +167,12 @@ export function listNotifications(): Promise<NotificationRecord[]> {
   return request<NotificationRecord[]>('/admin/notifications');
 }
 
+export function searchOrders(query: OrderListQuery): Promise<PageResult<OrderRecord>> {
+  return request<PageResult<OrderRecord>>(`/admin/orders${toQuery(query)}`);
+}
+
 export function listOrders(): Promise<OrderRecord[]> {
-  return request<OrderRecord[]>('/admin/orders');
+  return collectPages((offset) => searchOrders({ limit: FULL_PAGE_LIMIT, offset }));
 }
 
 /**
@@ -328,6 +350,22 @@ async function readError(response: Response): Promise<AdminApiError> {
     return new AdminApiError(response.status, 'REQUEST_FAILED', '');
   }
   return new AdminApiError(response.status, 'REQUEST_FAILED', '');
+}
+
+async function collectPages<T>(loadPage: (offset: number) => Promise<PageResult<T>>): Promise<T[]> {
+  const collected: T[] = [];
+  let offset = 0;
+  let total = 0;
+  do {
+    const page = await loadPage(offset);
+    collected.push(...page.items);
+    total = page.total;
+    offset += page.items.length;
+    if (page.items.length === 0) {
+      break;
+    }
+  } while (offset < total);
+  return collected;
 }
 
 function toQuery(params: object): string {

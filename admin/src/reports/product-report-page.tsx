@@ -4,6 +4,7 @@ import { getProductReport } from '@/api/admin-api-client';
 import { describeAdminError } from '@/api/admin-api-error';
 import type { SellerTotal, WarehouseQuantity } from '@/api/api-types';
 import { PageBanner, useLoad } from '@/catalog/page-state';
+import { formatGroupedDecimal } from '@/format/format-value';
 import { defaultPeriodDates, readReportPeriod, type ReportPeriodInput } from '@/reports/report-period';
 import { ReportPeriodForm, ReportSection } from '@/reports/report-section';
 import { CatalogPage } from '@/shell/catalog-page';
@@ -56,8 +57,8 @@ function SellerTable({ title, sellers }: { readonly title: string; readonly sell
       <thead>
         <tr>
           <th>المنتج</th>
-          <th>العملة</th>
-          <th>الكمية المدفوعة</th>
+          <th className="cell-center">العملة</th>
+          <th className="cell-center">الكمية المدفوعة</th>
         </tr>
       </thead>
       <tbody>
@@ -66,8 +67,8 @@ function SellerTable({ title, sellers }: { readonly title: string; readonly sell
             <td>
               <Link to={`/products/${seller.productId}`}>{seller.productName}</Link>
             </td>
-            <td>{currencyLabel(seller.currency)}</td>
-            <td>{seller.paidQuantity}</td>
+            <td className="cell-center">{currencyLabel(seller.currency)}</td>
+            <td className="cell-center">{formatGroupedDecimal(seller.paidQuantity)}</td>
           </tr>
         ))}
       </tbody>
@@ -86,10 +87,10 @@ function StockTable({ title, rows, emptyLabel }: { readonly title: string; reado
         <tr>
           <th>المستودع</th>
           <th>المنتج</th>
-          <th>الكمية</th>
-          <th>المحجوز</th>
-          <th>المتاح</th>
-          <th>حد الانخفاض</th>
+          <th className="cell-center">الكمية</th>
+          <th className="cell-center">المحجوز</th>
+          <th className="cell-center">المتاح</th>
+          <th className="cell-center">حد الانخفاض</th>
         </tr>
       </thead>
       <tbody>
@@ -99,10 +100,10 @@ function StockTable({ title, rows, emptyLabel }: { readonly title: string; reado
             <td>
               <Link to={`/products/${row.productId}`}>{row.productName}</Link>
             </td>
-            <td>{row.quantity}</td>
-            <td>{row.reservedQuantity}</td>
-            <td>{row.availableQuantity}</td>
-            <td>{row.lowQuantityThreshold}</td>
+            <td className="cell-center">{formatGroupedDecimal(row.quantity)}</td>
+            <td className="cell-center">{formatGroupedDecimal(row.reservedQuantity)}</td>
+            <td className="cell-center">{formatGroupedDecimal(row.availableQuantity)}</td>
+            <td className="cell-center">{formatGroupedDecimal(row.lowQuantityThreshold)}</td>
           </tr>
         ))}
       </tbody>

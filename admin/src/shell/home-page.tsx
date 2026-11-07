@@ -1,7 +1,8 @@
 import { useEffect, useState, type ReactElement } from 'react';
 import { Link } from 'react-router-dom';
-import type { OrderRecord } from '@/api/api-types';
-import { listNotifications, listOrders } from '@/api/admin-api-client';
+import type { OrderRecord, PageResult } from '@/api/api-types';
+import { listNotifications, searchOrders } from '@/api/admin-api-client';
+import { DetailParts } from '@/components/detail-parts';
 import { Icon } from '@/components/icon';
 import { formatDate } from '@/format/format-value';
 
@@ -17,13 +18,17 @@ interface HomeSnapshot {
 export function HomePage(): ReactElement {
   const [snapshot, setSnapshot] = useState<HomeSnapshot>({ reviewCount: 0, unreadCount: 0, nextOrder: null });
   useEffect(() => {
-    void Promise.all([listOrders().catch(() => [] as OrderRecord[]), listNotifications().catch(() => [])]).then(([orders, notifications]) => {
-      const reviewOrders = orders.filter((order) => order.status === 'PENDING' || order.status === 'PARTIALLY_APPROVED');
-      const newest = [...orders].sort((left, right) => right.createdAt.localeCompare(left.createdAt))[0] ?? null;
+    const emptyPage: PageResult<OrderRecord> = { items: [], total: 0, limit: 1, offset: 0 };
+    void Promise.all([
+      searchOrders({ status: 'PENDING', limit: 1, offset: 0 }).catch(() => emptyPage),
+      searchOrders({ status: 'PARTIALLY_APPROVED', limit: 1, offset: 0 }).catch(() => emptyPage),
+      searchOrders({ limit: 1, offset: 0 }).catch(() => emptyPage),
+      listNotifications().catch(() => []),
+    ]).then(([pending, partial, newest, notifications]) => {
       setSnapshot({
-        reviewCount: reviewOrders.length,
+        reviewCount: pending.total + partial.total,
         unreadCount: notifications.filter((notification) => notification.readAt === null).length,
-        nextOrder: newest,
+        nextOrder: newest.items[0] ?? null,
       });
     });
   }, []);
@@ -51,7 +56,10 @@ export function HomePage(): ReactElement {
             <>
               <b>#{snapshot.nextOrder.id}</b>
               <small>
-                {snapshot.nextOrder.pharmacyName} · {invoiceCountLabel(snapshot.nextOrder.invoiceCount)}
+                <DetailParts>
+                  <span>{snapshot.nextOrder.pharmacyName}</span>
+                  <span>{invoiceCountLabel(snapshot.nextOrder.invoiceCount)}</span>
+                </DetailParts>
               </small>
               <Link to={`/orders/${snapshot.nextOrder.id}`}>
                 فتح الطلب <Icon name="arrow" size={14} />

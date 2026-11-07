@@ -7,10 +7,11 @@ import { CATEGORY_OPTIONS, SALE_UNIT_OPTIONS } from '@/catalog/catalog-labels';
 import { PageBanner, useLoad } from '@/catalog/page-state';
 import { CategoryLabel } from '@/components/category-label';
 import { Field } from '@/components/field';
+import { DetailParts } from '@/components/detail-parts';
 import { Icon } from '@/components/icon';
 import { SectionTitle } from '@/components/section-title';
 import { Toggle } from '@/components/toggle';
-import { formatDateTime, fromDateTimeLocal, normalizeMoney, previewSypPrice, readInteger, toDateTimeLocal } from '@/format/format-value';
+import { formatDateTime, formatGroupedDecimal, fromDateTimeLocal, normalizeMoney, previewSypPrice, readInteger, toDateTimeLocal } from '@/format/format-value';
 import { CatalogPage } from '@/shell/catalog-page';
 
 interface StockDraft {
@@ -204,7 +205,7 @@ export function ProductFormPage(): ReactElement {
           <div className="switch-row">
             <span>
               <b>حساب الليرة من سعر الصرف</b>
-              <small>{current.calculateSypFromRate ? `مفعّل — ${rate.data ? `${rate.data.usdToSyp} ل.س لكل دولار` : 'لم يُحدَّد سعر صرف بعد'}` : 'متوقف — أسعار الليرة قابلة للتعديل'}</small>
+              <small>{current.calculateSypFromRate ? `مفعّل — ${rate.data ? `${formatGroupedDecimal(rate.data.usdToSyp)} ل.س لكل دولار` : 'لم يُحدَّد سعر صرف بعد'}` : 'متوقف — أسعار الليرة قابلة للتعديل'}</small>
             </span>
             <Toggle on={current.calculateSypFromRate} label="حساب الليرة من سعر الصرف" onChange={(on) => update({ calculateSypFromRate: on })} />
           </div>
@@ -259,7 +260,12 @@ function ImageSection({ isCreate, currentImage, imageName, onChoose }: { readonl
         <div className="ds-uploader catalog-uploader">
           <Icon name="upload" />
           <b>اسحب الصورة هنا أو اختر ملفاً</b>
-          <small>JPEG أو PNG أو WebP · حتى 5 MB</small>
+          <small>
+            <DetailParts>
+              <span>JPEG أو PNG أو WebP</span>
+              <span>حتى 5 MB</span>
+            </DetailParts>
+          </small>
           <label className="ds-btn ds-secondary">
             اختيار صورة
             <input type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={onChoose} />
@@ -340,8 +346,8 @@ function StockSection({ stocks, warehouses, error, onChange }: { readonly stocks
                   ))}
                 </select>
                 <input value={stock.quantity} inputMode="numeric" onChange={(event) => onChange(stocks.map((item) => item.key === stock.key ? { ...item, quantity: event.target.value } : item))} />
-                <span>{stock.reservedQuantity}</span>
-                <strong>{available}</strong>
+                <span>{formatGroupedDecimal(stock.reservedQuantity)}</span>
+                <strong>{formatGroupedDecimal(available)}</strong>
                 {stocks.length === 1 ? (
                   <span>أساسي</span>
                 ) : (

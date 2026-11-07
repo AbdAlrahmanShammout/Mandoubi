@@ -1,38 +1,45 @@
-import { useMemo, useState, type ReactElement } from 'react';
+import { useDeferredValue, useState, type ReactElement } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { listProducts } from '@/api/admin-api-client';
+import { searchProducts } from '@/api/admin-api-client';
 import { describeAdminError } from '@/api/admin-api-error';
 import type { ProductAvailability, ProductCategory, ProductRecord, ProductStatus } from '@/api/api-types';
 import { saleUnitLabel } from '@/catalog/catalog-labels';
-import { Pagination, ServerSearch, slicePage } from '@/catalog/list-controls';
+import { Pagination, ServerSearch } from '@/catalog/list-controls';
 import { PageBanner, useLoad } from '@/catalog/page-state';
 import { Badge } from '@/components/badge';
 import { CategoryLabel } from '@/components/category-label';
 import { Icon } from '@/components/icon';
+import { formatGroupedDecimal } from '@/format/format-value';
 import { CatalogPage } from '@/shell/catalog-page';
 
 /**
- * Product list with search and category, availability, and status filters.
+ * Product list searched and paged by the server.
  */
 export function ProductListPage(): ReactElement {
   const navigate = useNavigate();
-  const { data, errorMessage, isLoading, reload } = useLoad('products', listProducts, describeAdminError);
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('ALL');
   const [availability, setAvailability] = useState('ALL');
   const [status, setStatus] = useState('ALL');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
-  const filtered = useMemo(() => {
-    const needle = query.trim();
-    return (data ?? [])
-      .filter((product) => category === 'ALL' || product.category === category)
-      .filter((product) => availability === 'ALL' || product.availability === availability)
-      .filter((product) => status === 'ALL' || product.status === status)
-      .filter((product) => needle.length === 0 || product.name.includes(needle) || product.barcode.includes(needle) || product.activeIngredient.includes(needle))
-      .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
-  }, [availability, category, data, query, status]);
-  const visible = slicePage(filtered, page, pageSize);
+  const search = useDeferredValue(query).trim();
+  const offset = (page - 1) * pageSize;
+  const { data, errorMessage, isLoading, reload } = useLoad(
+    `products-${search}-${category}-${availability}-${status}-${offset}-${pageSize}`,
+    () => searchProducts({
+      search,
+      category: category === 'ALL' ? undefined : category as ProductCategory,
+      availability: availability === 'ALL' ? undefined : availability as ProductAvailability,
+      status: status === 'ALL' ? undefined : status as ProductStatus,
+      limit: pageSize,
+      offset,
+    }),
+    describeAdminError,
+  );
+  const products = data?.items ?? [];
+  const total = data?.total ?? 0;
+  const hasFilter = search.length > 0 || category !== 'ALL' || availability !== 'ALL' || status !== 'ALL';
   return (
     <CatalogPage crumb="الكتالوج / المنتجات" title="المنتجات" description="إدارة المنتجات والأسعار والمخزون في المستودعات." actionLabel="إضافة منتج" actionTo="/products/new">
       <PageBanner message={errorMessage} onRetry={reload} />
@@ -52,41 +59,41 @@ export function ProductListPage(): ReactElement {
       </div>
       <div className="catalog-table-card">
         <div className="catalog-table-meta">
-          <span>{filtered.length} منتجاً</span>
+          <span>{total} منتجاً</span>
           <small>النتائج مرتبة بحسب آخر تعديل</small>
         </div>
         <table className="orders-table product-list-table">
           <thead>
             <tr>
-              <th>الصورة</th>
+              <th className="cell-center">الصورة</th>
               <th>المنتج</th>
               <th>الباركود</th>
               <th>الشركة المصنعة</th>
-              <th>الفئة</th>
-              <th>الوحدة</th>
-              <th>التوفر</th>
-              <th>الحالة</th>
-              <th>عملة الفاتورة</th>
+              <th className="cell-center">الفئة</th>
+              <th className="cell-center">الوحدة</th>
+              <th className="cell-center">التوفر</th>
+              <th className="cell-center">الحالة</th>
+              <th className="cell-center">عملة الفاتورة</th>
               <th>المستودع الأساسي</th>
-              <th>المتاح</th>
-              <th>العرض</th>
-              <th />
+              <th className="cell-center">المتاح</th>
+              <th className="cell-center">العرض</th>
+              <th className="cell-center" />
             </tr>
           </thead>
           <tbody>
-            {visible.map((product) => (
+            {products.map((product) => (
               <ProductRow key={product.id} product={product} onOpen={() => navigate(`/products/${product.id}`)} />
             ))}
           </tbody>
         </table>
-        {!isLoading && filtered.length === 0 && (
+        {!isLoading && total === 0 && (
           <div className="ds-empty">
             <span>
-              <Icon name={data && data.length > 0 ? 'search' : 'products'} />
+              <Icon name={hasFilter ? 'search' : 'products'} />
             </span>
-            <b>{data && data.length > 0 ? 'لا توجد منتجات مطابقة' : 'لا توجد منتجات'}</b>
-            <p>{data && data.length > 0 ? 'لم تُطابق القائمة المحمّلة هذا البحث.' : 'أضف أول منتج بعد إنشاء شركة مصنّعة ومستودع.'}</p>
-            {data && data.length === 0 && (
+            <b>{hasFilter ? 'لا توجد منتجات مطابقة' : 'لا توجد منتجات'}</b>
+            <p>{hasFilter ? 'لا توجد نتائج لهذا البحث.' : 'أضف أول منتج بعد إنشاء شركة مصنّعة ومستودع.'}</p>
+            {!hasFilter && (
               <Link className="ds-btn ds-secondary" to="/products/new">
                 إضافة منتج
               </Link>
@@ -96,7 +103,7 @@ export function ProductListPage(): ReactElement {
         <Pagination
           page={page}
           pageSize={pageSize}
-          total={filtered.length}
+          total={total}
           onPageChange={setPage}
           onPageSizeChange={(next) => {
             setPageSize(next);
@@ -112,7 +119,7 @@ function ProductRow({ product, onOpen }: { readonly product: ProductRecord; read
   const primary = product.stocks.find((stock) => stock.isPrimary);
   return (
     <tr>
-      <td>
+      <td className="cell-center">
         <div className="table-thumbnail">{product.imageUrl ? <img src={product.imageUrl} alt="" /> : product.name.slice(0, 1)}</div>
       </td>
       <td>
@@ -123,25 +130,25 @@ function ProductRow({ product, onOpen }: { readonly product: ProductRecord; read
         <span className="barcode">{product.barcode}</span>
       </td>
       <td>{product.manufacturerName}</td>
-      <td>
+      <td className="cell-center">
         <CategoryLabel kind={product.category as ProductCategory} compact />
       </td>
-      <td>{saleUnitLabel(product.saleUnit)}</td>
-      <td>
+      <td className="cell-center">{saleUnitLabel(product.saleUnit)}</td>
+      <td className="cell-center">
         <Badge tone={product.availability === 'AVAILABLE' ? 'green' : 'red'}>{availabilityLabel(product.availability)}</Badge>
       </td>
-      <td>
+      <td className="cell-center">
         <Badge tone={product.status === 'ACTIVE' ? 'green' : 'neutral'}>{statusLabel(product.status)}</Badge>
       </td>
-      <td>
+      <td className="cell-center">
         <b>{product.invoiceCurrency === 'SYP' ? 'ل.س' : 'USD'}</b>
       </td>
       <td>{primary?.warehouseName ?? '—'}</td>
-      <td className="numeric-cell">
-        <b>{primary?.availableQuantity ?? 0}</b>
+      <td className="numeric-cell cell-center">
+        <b>{formatGroupedDecimal(primary?.availableQuantity ?? 0)}</b>
       </td>
-      <td>{product.offerActive ? <Badge tone="amber">عرض فعّال</Badge> : <span className="muted-dash">—</span>}</td>
-      <td>
+      <td className="cell-center">{product.offerActive ? <Badge tone="amber">عرض فعّال</Badge> : <span className="muted-dash">—</span>}</td>
+      <td className="cell-center">
         <button type="button" className="icon-action" aria-label="فتح المنتج" onClick={onOpen}>
           <Icon name="arrow" />
         </button>

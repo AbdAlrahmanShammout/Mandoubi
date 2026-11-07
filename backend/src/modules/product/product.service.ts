@@ -10,7 +10,9 @@ import { ManufacturerStatus } from '@/modules/manufacturer/enum/manufacturer-sta
 import { ManufacturerService } from '@/modules/manufacturer/manufacturer.service';
 import { MONEY_PATTERN } from '@/modules/product/constants/money.constant';
 import { CreateProductRepoInput, ResolvedProductPrices, UpdateProductRepoInput } from '@/modules/product/defs/product-repository.defs';
+import { Page, normalizePage } from '@/common/paging/page';
 import { ProductEntity } from '@/modules/product/entity/product.entity';
+import { ProductSearchInput } from '@/modules/product/repository/product.repository';
 import { ProductStockEntity } from '@/modules/product/entity/product-stock.entity';
 import { InvoiceCurrency } from '@/modules/product/enum/invoice-currency.enum';
 import { ProductAvailability } from '@/modules/product/enum/product-availability.enum';
@@ -109,6 +111,14 @@ export class ProductService {
    */
   async listProducts(): Promise<ProductEntity[]> {
     return this.productRepository.list();
+  }
+  /**
+   * Searches products on the server and returns one page plus the match count.
+   */
+  async searchProducts(input: Omit<ProductSearchInput, 'limit' | 'offset'> & { readonly limit?: number; readonly offset?: number }): Promise<Page<ProductEntity>> {
+    const page = normalizePage(input.limit, input.offset);
+    const result = await this.productRepository.search({ ...input, ...page });
+    return { ...result, ...page };
   }
   /**
    * Changes product data without changing warehouse quantities.

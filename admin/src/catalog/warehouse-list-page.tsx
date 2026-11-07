@@ -1,26 +1,30 @@
-import { useMemo, useState, type ReactElement } from 'react';
+import { useDeferredValue, useState, type ReactElement } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { listWarehouses } from '@/api/admin-api-client';
+import { searchWarehouses } from '@/api/admin-api-client';
 import { describeAdminError } from '@/api/admin-api-error';
-import { Pagination, ServerSearch, slicePage } from '@/catalog/list-controls';
+import { Pagination, ServerSearch } from '@/catalog/list-controls';
 import { PageBanner, useLoad } from '@/catalog/page-state';
 import { Icon } from '@/components/icon';
 import { CatalogPage } from '@/shell/catalog-page';
 
 /**
- * Warehouse list with name search.
+ * Warehouse list searched and paged by the server.
  */
 export function WarehouseListPage(): ReactElement {
   const navigate = useNavigate();
-  const { data, errorMessage, isLoading, reload } = useLoad('warehouses', listWarehouses, describeAdminError);
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
-  const filtered = useMemo(() => {
-    const needle = query.trim();
-    return (data ?? []).filter((warehouse) => needle.length === 0 || warehouse.name.includes(needle)).sort((left, right) => left.name.localeCompare(right.name, 'ar'));
-  }, [data, query]);
-  const visible = slicePage(filtered, page, pageSize);
+  const search = useDeferredValue(query).trim();
+  const offset = (page - 1) * pageSize;
+  const { data, errorMessage, isLoading, reload } = useLoad(
+    `warehouses-${search}-${offset}-${pageSize}`,
+    () => searchWarehouses({ search, limit: pageSize, offset }),
+    describeAdminError,
+  );
+  const warehouses = data?.items ?? [];
+  const total = data?.total ?? 0;
+  const hasFilter = search.length > 0;
   return (
     <CatalogPage crumb="الكتالوج / المستودعات" title="المستودعات" description="إدارة مواقع التخزين وعناوينها." actionLabel="إضافة مستودع" actionTo="/warehouses/new">
       <PageBanner message={errorMessage} onRetry={reload} />
@@ -41,17 +45,17 @@ export function WarehouseListPage(): ReactElement {
             <tr>
               <th>اسم المستودع</th>
               <th>العنوان</th>
-              <th />
+              <th className="cell-center" />
             </tr>
           </thead>
           <tbody>
-            {visible.map((warehouse) => (
+            {warehouses.map((warehouse) => (
               <tr key={warehouse.id}>
                 <td>
                   <b>{warehouse.name}</b>
                 </td>
                 <td>{warehouse.address}</td>
-                <td>
+                <td className="cell-center">
                   <button type="button" className="icon-action" aria-label="فتح المستودع" onClick={() => navigate(`/warehouses/${warehouse.id}`)}>
                     <Icon name="arrow" />
                   </button>
@@ -60,14 +64,14 @@ export function WarehouseListPage(): ReactElement {
             ))}
           </tbody>
         </table>
-        {!isLoading && filtered.length === 0 && (
+        {!isLoading && total === 0 && (
           <div className="ds-empty">
             <span>
               <Icon name="warehouse" />
             </span>
-            <b>{data && data.length > 0 ? 'لا توجد مستودعات مطابقة' : 'لا توجد مستودعات'}</b>
-            <p>{data && data.length > 0 ? 'جرّب اسماً مختلفاً.' : 'أضف أول مستودع قبل إنشاء المنتجات.'}</p>
-            {data && data.length === 0 && (
+            <b>{hasFilter ? 'لا توجد مستودعات مطابقة' : 'لا توجد مستودعات'}</b>
+            <p>{hasFilter ? 'لا توجد نتائج لهذا البحث.' : 'أضف أول مستودع قبل إنشاء المنتجات.'}</p>
+            {!hasFilter && (
               <Link className="ds-btn ds-secondary" to="/warehouses/new">
                 إضافة مستودع
               </Link>
@@ -77,7 +81,7 @@ export function WarehouseListPage(): ReactElement {
         <Pagination
           page={page}
           pageSize={pageSize}
-          total={filtered.length}
+          total={total}
           onPageChange={setPage}
           onPageSizeChange={(next) => {
             setPageSize(next);

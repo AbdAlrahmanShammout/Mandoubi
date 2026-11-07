@@ -7,7 +7,7 @@ import { PrismaProviderService } from '@/providers/database/prisma/prisma-provid
 import { CreateProductRepoInput, UpdateProductRepoInput } from '@/modules/product/defs/product-repository.defs';
 import { ProductEntity } from '@/modules/product/entity/product.entity';
 import { ProductMapper } from '@/modules/product/mapper/product.mapper';
-import { ProductRepository } from '@/modules/product/repository/product.repository';
+import { ProductRepository, ProductSearchInput } from '@/modules/product/repository/product.repository';
 import { calculateSypPrice } from '@/modules/product/helpers/syp-price.helper';
 import { productDetailsInclude } from '@/modules/product/types/product-details.include';
 
@@ -76,6 +76,21 @@ export class ProductPrismaRepository extends ProductRepository {
       orderBy: { id: 'asc' },
     });
     return results.map((result) => ProductMapper.toEntity(result));
+  }
+  /** Searches name, barcode, and active ingredient, then returns one page. */
+  async search(input: ProductSearchInput): Promise<{ readonly items: readonly ProductEntity[]; readonly total: number }> {
+    const where = productSearchWhere(input);
+    const [results, total] = await this.prisma.$transaction([
+      this.prisma.product.findMany({
+        where,
+        include: productDetailsInclude,
+        orderBy: [{ updatedAt: 'desc' }, { id: 'desc' }],
+        take: input.limit,
+        skip: input.offset,
+      }),
+      this.prisma.product.count({ where }),
+    ]);
+    return { items: results.map((result) => ProductMapper.toEntity(result)), total };
   }
   /** Updates product fields when the product is still present. */
   async update(input: UpdateProductRepoInput, context?: TransactionContext): Promise<ProductEntity | null> {
@@ -155,6 +170,24 @@ function conflictForProduct(error: unknown): ConflictException {
     message: 'A product with this barcode already exists',
     code: 'BARCODE_IN_USE',
   });
+}
+
+function productSearchWhere(input: ProductSearchInput): Prisma.ProductWhereInput {
+  return {
+    deletedAt: null,
+    ...(input.category ? { category: input.category } : {}),
+    ...(input.availability ? { availability: input.availability } : {}),
+    ...(input.status ? { status: input.status } : {}),
+    ...(input.search
+      ? {
+          OR: [
+            { name: { contains: input.search, mode: 'insensitive' } },
+            { barcode: { contains: input.search, mode: 'insensitive' } },
+            { activeIngredient: { contains: input.search, mode: 'insensitive' } },
+          ],
+        }
+      : {}),
+  };
 }
 
 function uniqueTarget(error: Prisma.PrismaClientKnownRequestError): string {

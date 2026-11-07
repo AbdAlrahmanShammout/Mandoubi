@@ -6,7 +6,7 @@ import { useConfirm } from '@/components/confirm-dialog';
 import { Field } from '@/components/field';
 import { Icon } from '@/components/icon';
 import { SectionTitle } from '@/components/section-title';
-import { formatDateTime, normalizeRate } from '@/format/format-value';
+import { formatDateTime, formatGroupedDecimal, normalizeRate } from '@/format/format-value';
 import { CatalogPage } from '@/shell/catalog-page';
 
 /**
@@ -62,7 +62,7 @@ export function ExchangeRatePage(): ReactElement {
           <div>
             <b>1 USD</b>
             <i>=</i>
-            <strong>{rate.data ? <>{rate.data.usdToSyp} <small>ل.س</small></> : <small>غير محدد</small>}</strong>
+            <strong>{rate.data ? <>{formatGroupedDecimal(rate.data.usdToSyp)} <small>ل.س</small></> : <small>غير محدد</small>}</strong>
           </div>
           <p>{rate.data ? `آخر تحديث: ${formatDateTime(rate.data.updatedAt)}` : 'لم يُحفظ سعر بعد.'}</p>
         </section>

@@ -5,8 +5,9 @@ import { describeAdminError } from '@/api/admin-api-error';
 import type { InvoiceCurrency, PaymentMethod, PharmacyStatement, UnpaidInvoice } from '@/api/api-types';
 import { PageBanner, useLoad } from '@/catalog/page-state';
 import { Badge } from '@/components/badge';
+import { DetailParts } from '@/components/detail-parts';
 import { useConfirm } from '@/components/confirm-dialog';
-import { formatDateTime, sumMoney } from '@/format/format-value';
+import { formatDateTime, formatGroupedDecimal, sumMoney } from '@/format/format-value';
 import { formatMoney } from '@/orders/order-labels';
 import { CatalogPage } from '@/shell/catalog-page';
 
@@ -48,10 +49,10 @@ function StatementBody({ statement, onSaved }: { readonly statement: PharmacySta
         {statement.currencies.map((currency) => (
           <article key={currency.currency} className="catalog-form-section">
             <h5>{currency.currency === 'USD' ? 'USD' : 'ل.س'}</h5>
-            <p>افتتاحي {currency.openingBalance}</p>
-            <p>قيود {currency.charges}</p>
-            <p>دفعات {currency.payments}</p>
-            <p>متبقي {currency.outstanding}</p>
+            <p>افتتاحي {formatGroupedDecimal(currency.openingBalance)}</p>
+            <p>قيود {formatGroupedDecimal(currency.charges)}</p>
+            <p>دفعات {formatGroupedDecimal(currency.payments)}</p>
+            <p>متبقي {formatGroupedDecimal(currency.outstanding)}</p>
           </article>
         ))}
       </div>
@@ -62,21 +63,21 @@ function StatementBody({ statement, onSaved }: { readonly statement: PharmacySta
         <table className="orders-table">
           <thead>
             <tr>
-              <th>النوع</th>
+              <th className="cell-center">النوع</th>
               <th>المبلغ</th>
               <th>الوقت</th>
-              <th>الفاتورة</th>
-              <th>الدفعة</th>
+              <th className="cell-center">الفاتورة</th>
+              <th className="cell-center">الدفعة</th>
             </tr>
           </thead>
           <tbody>
             {statement.currencies.flatMap((currency) => currency.entries).map((entry, index) => (
               <tr key={`${entry.kind}-${entry.occurredAt}-${index}`}>
-                <td>{entryKindLabel(entry.kind)}</td>
+                <td className="cell-center">{entryKindLabel(entry.kind)}</td>
                 <td>{formatMoney(entry.amount, entry.currency)}</td>
                 <td>{formatDateTime(entry.occurredAt)}</td>
-                <td>{entry.invoiceId ? `#${entry.invoiceId}` : '—'}</td>
-                <td>{entry.paymentId ? `#${entry.paymentId}` : '—'}</td>
+                <td className="cell-center">{entry.invoiceId ? `#${entry.invoiceId}` : '—'}</td>
+                <td className="cell-center">{entry.paymentId ? `#${entry.paymentId}` : '—'}</td>
               </tr>
             ))}
           </tbody>
@@ -169,7 +170,11 @@ function ReceiptForm({ statement, onSaved }: { readonly statement: PharmacyState
             <span>
               <b>فاتورة #{invoice.invoiceId}</b>
               <small>
-                طلب #{invoice.orderId} · تسليم {formatDateTime(invoice.deliveredAt)} · استحقاق {formatDateTime(invoice.dueDate)}
+                <DetailParts>
+                  <span>طلب #{invoice.orderId}</span>
+                  <span>تسليم {formatDateTime(invoice.deliveredAt)}</span>
+                  <span>استحقاق {formatDateTime(invoice.dueDate)}</span>
+                </DetailParts>
               </small>
             </span>
             <strong>

@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { ResourceNotFoundException } from '@/common/exceptions/resource-not-found.exception';
+import { Page, normalizePage } from '@/common/paging/page';
 import { CreateWarehouseRepoInput, UpdateWarehouseRepoInput } from '@/modules/warehouse/defs/warehouse-repository.defs';
 import { WarehouseEntity } from '@/modules/warehouse/entity/warehouse.entity';
-import { WarehouseRepository } from '@/modules/warehouse/repository/warehouse.repository';
+import { WarehouseRepository, WarehouseSearchInput } from '@/modules/warehouse/repository/warehouse.repository';
 
 /**
  * Warehouses where product quantities are recorded.
@@ -31,6 +32,14 @@ export class WarehouseService {
    */
   async listWarehouses(): Promise<WarehouseEntity[]> {
     return this.warehouseRepository.list();
+  }
+  /**
+   * Searches warehouses on the server and returns one page plus the match count.
+   */
+  async searchWarehouses(input: Omit<WarehouseSearchInput, 'limit' | 'offset'> & { readonly limit?: number; readonly offset?: number }): Promise<Page<WarehouseEntity>> {
+    const page = normalizePage(input.limit, input.offset);
+    const result = await this.warehouseRepository.search({ ...input, ...page });
+    return { ...result, ...page };
   }
   /**
    * Changes the warehouse name or address.

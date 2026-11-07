@@ -1,7 +1,9 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Roles } from '@/common/decorators/route/roles.decorator';
 import { RolesGuard } from '@/common/guards/roles.guard';
+import { PageResponse } from '@/common/paging/page.response';
+import { PageQueryDto } from '@/common/paging/page-query.dto';
 import { WarehouseStockResponse } from '@/modules/product/dto/response/model/warehouse-stock.response';
 import { ProductService } from '@/modules/product/product.service';
 import { CreateWarehouseRequestDto } from '@/modules/warehouse/dto/request/create-warehouse-request.dto';
@@ -34,13 +36,13 @@ export class WarehouseAdminController {
     return new WarehouseResponse(warehouse);
   }
   /**
-   * Lists warehouses.
+   * Searches warehouses and returns one page.
    */
   @Get()
-  @ApiOperation({ summary: 'List warehouses' })
-  async list(): Promise<WarehouseResponse[]> {
-    const warehouses = await this.warehouseService.listWarehouses();
-    return warehouses.map((warehouse) => new WarehouseResponse(warehouse));
+  @ApiOperation({ summary: 'Search warehouses' })
+  async list(@Query() query: PageQueryDto): Promise<PageResponse<WarehouseResponse>> {
+    const page = await this.warehouseService.searchWarehouses(query);
+    return new PageResponse(page.items.map((warehouse) => new WarehouseResponse(warehouse)), page.total, page.limit, page.offset);
   }
   /**
    * Reads one warehouse.

@@ -7,7 +7,7 @@ import { PrismaProviderService } from '@/providers/database/prisma/prisma-provid
 import { CreateManufacturerRepoInput, UpdateManufacturerRepoInput, UpdateManufacturerStatusRepoInput } from '@/modules/manufacturer/defs/manufacturer-repository.defs';
 import { ManufacturerEntity } from '@/modules/manufacturer/entity/manufacturer.entity';
 import { ManufacturerMapper } from '@/modules/manufacturer/mapper/manufacturer.mapper';
-import { ManufacturerRepository } from '@/modules/manufacturer/repository/manufacturer.repository';
+import { ManufacturerRepository, ManufacturerSearchInput } from '@/modules/manufacturer/repository/manufacturer.repository';
 import { manufacturerDetailsInclude } from '@/modules/manufacturer/types/manufacturer-details.include';
 
 function nameConflict(): ConflictException {
@@ -48,6 +48,25 @@ export class ManufacturerPrismaRepository extends ManufacturerRepository {
       orderBy: { id: 'asc' },
     });
     return results.map((result) => ManufacturerMapper.toEntity(result));
+  }
+  /** Searches the manufacturer name, then returns one page. */
+  async search(input: ManufacturerSearchInput): Promise<{ readonly items: readonly ManufacturerEntity[]; readonly total: number }> {
+    const where: Prisma.ManufacturerWhereInput = {
+      deletedAt: null,
+      ...(input.status ? { status: input.status } : {}),
+      ...(input.search ? { name: { contains: input.search, mode: 'insensitive' } } : {}),
+    };
+    const [results, total] = await this.prisma.$transaction([
+      this.prisma.manufacturer.findMany({
+        where,
+        include: manufacturerDetailsInclude,
+        orderBy: [{ name: 'asc' }, { id: 'asc' }],
+        take: input.limit,
+        skip: input.offset,
+      }),
+      this.prisma.manufacturer.count({ where }),
+    ]);
+    return { items: results.map((result) => ManufacturerMapper.toEntity(result)), total };
   }
   /** Updates the name when the manufacturer is still present. */
   async update(input: UpdateManufacturerRepoInput, context?: TransactionContext): Promise<ManufacturerEntity | null> {

@@ -5,9 +5,10 @@ import { describeAdminError } from '@/api/admin-api-error';
 import type { OrderRecord, ProductRecord, RejectionReasonRecord, WarehouseRecord } from '@/api/api-types';
 import { PageBanner, useLoad } from '@/catalog/page-state';
 import { Badge } from '@/components/badge';
+import { DetailParts } from '@/components/detail-parts';
 import { CategoryLabel } from '@/components/category-label';
 import { Icon } from '@/components/icon';
-import { formatDateTime } from '@/format/format-value';
+import { formatDateTime, formatGroupedDecimal } from '@/format/format-value';
 import { InvoiceReview } from '@/orders/invoice-review';
 import { formatMoney, invoiceStatusLabel, orderStatusLabel, rejectionSummary } from '@/orders/order-labels';
 import { CatalogPage } from '@/shell/catalog-page';
@@ -63,7 +64,15 @@ export function OrderDetailPage(): ReactElement {
                       <CategoryLabel kind={invoice.category} compact />
                     </span>
                     <Badge tone={invoiceTone}>{invoiceLabel}</Badge>
-                    <strong>{invoice.totals.map((total) => formatMoney(total.amount, total.currency)).join(' · ') || '—'}</strong>
+                    <strong>
+                      {invoice.totals.length === 0 ? '—' : (
+                        <DetailParts>
+                          {invoice.totals.map((total) => (
+                            <span key={total.currency}>{formatMoney(total.amount, total.currency)}</span>
+                          ))}
+                        </DetailParts>
+                      )}
+                    </strong>
                     {rejectionSummary(invoice) && <em>{rejectionSummary(invoice)}</em>}
                   </button>
                 );
@@ -100,7 +109,14 @@ function OrderSummary({ order }: { readonly order: OrderRecord }): ReactElement 
             <small>طلب #{order.id}</small>
             <h5>{order.pharmacyName}</h5>
             <p>
-              <Icon name="user" size={14} /> معرّف الصيدلية {order.pharmacyId} · {formatDateTime(order.createdAt)} · <Link to={`/accounts/pharmacies/${order.pharmacyId}`}>كشف الحساب</Link>
+              <DetailParts>
+                <span className="detail-part">
+                  <Icon name="user" size={14} />
+                  معرّف الصيدلية {order.pharmacyId}
+                </span>
+                <span>{formatDateTime(order.createdAt)}</span>
+                <Link to={`/accounts/pharmacies/${order.pharmacyId}`}>كشف الحساب</Link>
+              </DetailParts>
             </p>
           </div>
         </div>
@@ -126,7 +142,7 @@ function OrderSummary({ order }: { readonly order: OrderRecord }): ReactElement 
             {index > 0 && <i />}
             <span>
               <small>{total.currency === 'USD' ? 'USD' : 'ل.س'}</small>
-              <b>{total.amount}</b>
+              <b>{formatGroupedDecimal(total.amount)}</b>
             </span>
           </Fragment>
         ))}

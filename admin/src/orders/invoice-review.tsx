@@ -3,9 +3,11 @@ import { approveInvoice, getInvoice, rejectInvoice } from '@/api/admin-api-clien
 import { describeAdminError } from '@/api/admin-api-error';
 import type { InvoiceRecord, ProductRecord, RejectionReasonRecord, WarehouseRecord } from '@/api/api-types';
 import { saleUnitLabel } from '@/catalog/catalog-labels';
+import { formatGroupedDecimal } from '@/format/format-value';
 import { PageBanner, useLoad } from '@/catalog/page-state';
 import { CategoryLabel } from '@/components/category-label';
 import { Badge } from '@/components/badge';
+import { DetailParts } from '@/components/detail-parts';
 import { useConfirm } from '@/components/confirm-dialog';
 import { Icon } from '@/components/icon';
 import { InvoiceDispatch } from '@/orders/invoice-dispatch';
@@ -89,7 +91,13 @@ export function InvoiceReview({ invoice, products, warehouses, reasons, onChange
           <p>الأسعار والكميات لقطة من لحظة الإرسال، ولا تتغير إذا تغيّر المنتج لاحقاً.</p>
         </span>
         <strong>
-          {current.totals.length === 0 ? '—' : current.totals.map((total) => formatMoney(total.amount, total.currency)).join(' · ')}
+          {current.totals.length === 0 ? '—' : (
+            <DetailParts>
+              {current.totals.map((total) => (
+                <span key={total.currency}>{formatMoney(total.amount, total.currency)}</span>
+              ))}
+            </DetailParts>
+          )}
         </strong>
         <Badge tone={tone}>{statusLabel}</Badge>
       </header>
@@ -106,17 +114,17 @@ export function InvoiceReview({ invoice, products, warehouses, reasons, onChange
             <tr>
               <th>المنتج</th>
               <th>الباركود</th>
-              <th>الوحدة</th>
-              <th>المدفوع</th>
-              <th>المجاني</th>
-              <th>الإجمالي</th>
+              <th className="cell-center">الوحدة</th>
+              <th className="cell-center">المدفوع</th>
+              <th className="cell-center">المجاني</th>
+              <th className="cell-center">الإجمالي</th>
               <th>سعر الوحدة</th>
               <th>سعر المستهلك</th>
-              <th>العملة</th>
+              <th className="cell-center">العملة</th>
               <th>مبلغ السطر</th>
-              <th>العرض</th>
+              <th className="cell-center">العرض</th>
               <th>المستودع المسجّل</th>
-              <th>المتاح الآن</th>
+              <th className="cell-center">المتاح الآن</th>
             </tr>
           </thead>
           <tbody>
@@ -128,20 +136,20 @@ export function InvoiceReview({ invoice, products, warehouses, reasons, onChange
                 <td>
                   <span className="barcode">{item.barcode}</span>
                 </td>
-                <td>{saleUnitLabel(item.saleUnit)}</td>
-                <td className="numeric-cell">{item.paidQuantity}</td>
-                <td className="numeric-cell">{item.freeQuantity}</td>
-                <td className="numeric-cell">{item.totalQuantity}</td>
-                <td className="numeric-cell">{item.unitPrice}</td>
-                <td className="numeric-cell">{item.consumerUnitPrice}</td>
-                <td>{item.currency === 'USD' ? 'USD' : 'ل.س'}</td>
-                <td className="numeric-cell">{item.lineAmount}</td>
-                <td>{item.offerPaidUnits === null ? '—' : `${item.offerPaidUnits} + ${item.offerFreeUnits ?? 0}`}</td>
+                <td className="cell-center">{saleUnitLabel(item.saleUnit)}</td>
+                <td className="numeric-cell cell-center">{formatGroupedDecimal(item.paidQuantity)}</td>
+                <td className="numeric-cell cell-center">{formatGroupedDecimal(item.freeQuantity)}</td>
+                <td className="numeric-cell cell-center">{formatGroupedDecimal(item.totalQuantity)}</td>
+                <td className="numeric-cell">{formatGroupedDecimal(item.unitPrice)}</td>
+                <td className="numeric-cell">{formatGroupedDecimal(item.consumerUnitPrice)}</td>
+                <td className="cell-center">{item.currency === 'USD' ? 'USD' : 'ل.س'}</td>
+                <td className="numeric-cell">{formatGroupedDecimal(item.lineAmount)}</td>
+                <td className="cell-center">{item.offerPaidUnits === null ? '—' : `${item.offerPaidUnits} + ${item.offerFreeUnits ?? 0}`}</td>
                 <td>
                   <b>{availability.warehouseName}</b>
                   <small>#{item.primaryWarehouseId}</small>
                 </td>
-                <td className={availability.isShort ? 'stock-short' : undefined}>{availability.availableQuantity === null ? 'غير معروف' : availability.availableQuantity}</td>
+                <td className={availability.isShort ? 'stock-short cell-center' : 'cell-center'}>{availability.availableQuantity === null ? 'غير معروف' : formatGroupedDecimal(availability.availableQuantity)}</td>
               </tr>
             ))}
           </tbody>

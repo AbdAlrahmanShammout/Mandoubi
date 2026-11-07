@@ -1,8 +1,10 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Roles } from '@/common/decorators/route/roles.decorator';
 import { RolesGuard } from '@/common/guards/roles.guard';
+import { PageResponse } from '@/common/paging/page.response';
 import { CreateManufacturerRequestDto } from '@/modules/manufacturer/dto/request/create-manufacturer-request.dto';
+import { ListManufacturersQueryDto } from '@/modules/manufacturer/dto/request/list-manufacturers-query.dto';
 import { UpdateManufacturerRequestDto } from '@/modules/manufacturer/dto/request/update-manufacturer-request.dto';
 import { UpdateManufacturerStatusRequestDto } from '@/modules/manufacturer/dto/request/update-manufacturer-status-request.dto';
 import { ManufacturerResponse } from '@/modules/manufacturer/dto/response/model/manufacturer.response';
@@ -30,13 +32,13 @@ export class ManufacturerAdminController {
     return new ManufacturerResponse(manufacturer);
   }
   /**
-   * Lists manufacturers.
+   * Searches manufacturers and returns one page.
    */
   @Get()
-  @ApiOperation({ summary: 'List manufacturers' })
-  async list(): Promise<ManufacturerResponse[]> {
-    const manufacturers = await this.manufacturerService.listManufacturers();
-    return manufacturers.map((manufacturer) => new ManufacturerResponse(manufacturer));
+  @ApiOperation({ summary: 'Search manufacturers' })
+  async list(@Query() query: ListManufacturersQueryDto): Promise<PageResponse<ManufacturerResponse>> {
+    const page = await this.manufacturerService.searchManufacturers(query);
+    return new PageResponse(page.items.map((manufacturer) => new ManufacturerResponse(manufacturer)), page.total, page.limit, page.offset);
   }
   /**
    * Reads one manufacturer.

@@ -227,6 +227,20 @@ a.icon-action {
 
 .admin-app .catalog-tools {
   margin: 20px 28px 16px;
+  gap: 16px;
+}
+
+.admin-app .fields-grid,
+.admin-app .inactive-offer-fields,
+.admin-app .limit-grid,
+.admin-app .price-grid,
+.admin-app .price-grid > div,
+.admin-app .catalog-split-sections,
+.admin-app .report-filters,
+.admin-app .action-form,
+.admin-app .driver-assignment,
+.admin-app .ds-data-tools {
+  gap: 16px;
 }
 
 .admin-app .orders-search {
@@ -269,14 +283,28 @@ a.icon-action {
   font-size: 14px;
 }
 
-.admin-app .orders-table th {
+.admin-app .orders-table th,
+.admin-app .line-table th {
   padding: 14px 12px;
   font-size: 13px;
 }
 
-.admin-app .orders-table td {
+.admin-app .orders-table td,
+.admin-app .line-table td {
   padding: 14px 12px;
   font-size: 14px;
+}
+
+.admin-app :is(.orders-table, .line-table) :is(th, td).cell-center {
+  text-align: center;
+}
+
+.admin-app :is(.orders-table, .line-table) td.cell-center.numeric-cell {
+  text-align: center;
+}
+
+.admin-app :is(.orders-table, .line-table) td.cell-center > :is(.badge, .status-switch, .icon-action, .category-label, .table-thumbnail) {
+  margin-inline: auto;
 }
 
 .admin-app .orders-table td > small {
@@ -302,14 +330,67 @@ a.icon-action {
   font-size: 12px;
 }
 
+.admin-app :is(td, span, h5, div):has(> .category-label) {
+  container-type: inline-size;
+  container-name: category-slot;
+}
+
+.admin-app .category-label,
 .admin-app .category-label.compact {
-  min-width: 88px;
-  min-height: 52px;
+  min-width: 0;
+  min-height: 32px;
+  width: max-content;
+  max-width: 100%;
+  display: inline-flex !important;
+  flex-direction: row;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 6px;
+  padding: 4px 10px;
+  text-align: start !important;
+}
+
+.admin-app .category-label .category-icon,
+.admin-app .category-label.compact .category-icon {
+  width: 22px;
+  height: 22px;
+  margin: 0;
 }
 
 .admin-app .category-label.compact b,
 .admin-app .category-label b {
-  font-size: 12px;
+  width: auto;
+  font-size: 13px;
+  line-height: 1.3;
+  text-align: start !important;
+}
+
+@container category-slot (max-width: 132px) {
+  .admin-app .category-label,
+  .admin-app .category-label.compact {
+    flex-direction: column;
+    justify-content: center !important;
+    gap: 3px;
+    padding: 6px 8px;
+    text-align: center !important;
+  }
+
+  .admin-app .category-label b,
+  .admin-app .category-label.compact b {
+    width: 100%;
+    text-align: center !important;
+  }
+}
+
+.admin-app .category-field-control > .category-label {
+  top: 6px;
+  right: auto;
+  inset-inline-start: 8px;
+}
+
+.admin-app .category-field-control select {
+  height: 44px !important;
+  padding-inline-start: 156px;
 }
 
 .admin-app .icon-action {
@@ -441,8 +522,16 @@ a.icon-action {
   font-size: 14px;
 }
 
+.admin-app .warehouse-head,
+.admin-app .warehouse-row {
+  column-gap: 16px;
+}
+
+.admin-app .warehouse-row select,
 .admin-app .warehouse-row input:not([type='radio']) {
-  width: 88px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
   height: 36px;
   font-size: 14px;
 }
@@ -598,6 +687,33 @@ a.icon-action {
 
 .admin-app .order-title h5 {
   font-size: 18px;
+}
+
+.admin-app .order-title p {
+  gap: 0;
+}
+
+.admin-app .detail-item {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.admin-app .detail-item:not(:first-child)::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  margin-inline: 10px;
+  border-radius: 50%;
+  background: #8b9c94;
+  flex: 0 0 auto;
+}
+
+.admin-app .detail-part {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .admin-app .order-title small,

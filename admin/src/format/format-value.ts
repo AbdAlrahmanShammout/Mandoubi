@@ -1,5 +1,23 @@
+const GROUP_SIZE = 3;
 const MONEY_PATTERN = /^(?:0|[1-9]\d{0,12})(?:\.\d{1,2})?$/;
 const RATE_PATTERN = /^(?:0|[1-9]\d{0,12})(?:\.\d{1,4})?$/;
+
+/**
+ * Groups the whole part of a decimal every three digits.
+ * Inputs sent to the API stay without separators.
+ */
+export function formatGroupedDecimal(value: string | number): string {
+  const text = String(value).trim();
+  const match = /^(-?)(\d+)(?:\.(\d+))?$/.exec(text);
+  if (!match) {
+    return text;
+  }
+  const sign = match[1] ?? '';
+  const whole = match[2] ?? '';
+  const fraction = match[3];
+  const grouped = whole.replace(new RegExp(`\\B(?=(\\d{${GROUP_SIZE}})+(?!\\d))`, 'g'), ',');
+  return fraction === undefined ? `${sign}${grouped}` : `${sign}${grouped}.${fraction}`;
+}
 
 /**
  * Positive money amount accepted by the admin API, without grouping separators.

@@ -6,6 +6,7 @@ import { PageBanner, useLoad } from '@/catalog/page-state';
 import { Badge } from '@/components/badge';
 import { Field } from '@/components/field';
 import { SectionTitle } from '@/components/section-title';
+import { formatGroupedDecimal } from '@/format/format-value';
 import { CatalogPage } from '@/shell/catalog-page';
 
 /**
@@ -75,8 +76,8 @@ export function WarehouseFormPage(): ReactElement {
                 <tr>
                   <th>المنتج</th>
                   <th>الباركود</th>
-                  <th>الكمية</th>
-                  <th>أساسي لهذا المنتج</th>
+                  <th className="cell-center">الكمية</th>
+                  <th className="cell-center">أساسي لهذا المنتج</th>
                 </tr>
               </thead>
               <tbody>
@@ -88,10 +89,10 @@ export function WarehouseFormPage(): ReactElement {
                     <td>
                       <span className="barcode">{product.barcode}</span>
                     </td>
-                    <td className="numeric-cell">
-                      <b>{product.quantity}</b>
+                    <td className="numeric-cell cell-center">
+                      <b>{formatGroupedDecimal(product.quantity)}</b>
                     </td>
-                    <td>{product.isPrimary ? <Badge tone="green">المستودع الأساسي</Badge> : <span className="muted-dash">—</span>}</td>
+                    <td className="cell-center">{product.isPrimary ? <Badge tone="green">المستودع الأساسي</Badge> : <span className="muted-dash">—</span>}</td>
                   </tr>
                 ))}
               </tbody>

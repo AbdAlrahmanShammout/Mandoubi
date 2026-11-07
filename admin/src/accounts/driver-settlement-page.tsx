@@ -6,7 +6,7 @@ import type { DriverCollection, DriverPosition, DriverRecord, InvoiceCurrency } 
 import { PageBanner, useLoad } from '@/catalog/page-state';
 import { Badge } from '@/components/badge';
 import { useConfirm } from '@/components/confirm-dialog';
-import { formatDateTime, sumMoney } from '@/format/format-value';
+import { formatDateTime, formatGroupedDecimal, sumMoney } from '@/format/format-value';
 import { formatMoney } from '@/orders/order-labels';
 import { CatalogPage } from '@/shell/catalog-page';
 
@@ -72,9 +72,9 @@ function PositionBody({ driver, position, onSaved }: { readonly driver: DriverRe
         {position.holdings.map((holding) => (
           <article key={holding.currency} className="catalog-form-section">
             <h5>{holding.currency === 'USD' ? 'USD' : 'ل.س'}</h5>
-            <p>حُصّل {holding.collected}</p>
-            <p>سُلّم {holding.handedOver}</p>
-            <p>متبقٍ {holding.held}</p>
+            <p>حُصّل {formatGroupedDecimal(holding.collected)}</p>
+            <p>سُلّم {formatGroupedDecimal(holding.handedOver)}</p>
+            <p>متبقٍ {formatGroupedDecimal(holding.held)}</p>
           </article>
         ))}
       </div>

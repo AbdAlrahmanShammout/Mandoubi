@@ -13,6 +13,38 @@ export interface AdminUser {
   readonly updatedAt: string;
 }
 
+export interface PageResult<T> {
+  readonly items: readonly T[];
+  readonly total: number;
+  readonly limit: number;
+  readonly offset: number;
+}
+
+export interface ProductListQuery {
+  readonly search?: string;
+  readonly category?: ProductCategory;
+  readonly availability?: ProductAvailability;
+  readonly status?: ProductStatus;
+  readonly limit: number;
+  readonly offset: number;
+}
+
+export interface NamedListQuery {
+  readonly search?: string;
+  readonly status?: 'ACTIVE' | 'DISABLED';
+  readonly limit: number;
+  readonly offset: number;
+}
+
+export interface OrderListQuery {
+  readonly search?: string;
+  readonly status?: OrderStatus;
+  readonly createdFrom?: string;
+  readonly createdTo?: string;
+  readonly limit: number;
+  readonly offset: number;
+}
+
 export interface ManufacturerRecord {
   readonly id: number;
   readonly name: string;
