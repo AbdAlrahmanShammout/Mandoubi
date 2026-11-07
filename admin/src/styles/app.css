@@ -528,6 +528,52 @@ a.icon-action {
   font-size: 14px;
 }
 
+.admin-app .report-hub {
+  margin: 20px 28px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.admin-app .report-hub a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.admin-app .report-hub h5,
+.admin-app .report-group-title {
+  margin-bottom: 6px;
+  font: 600 16px 'Noto Kufi Arabic', sans-serif;
+}
+
+.admin-app .report-group-title {
+  margin: 18px 28px 0;
+}
+
+.admin-app .report-filters {
+  margin: 18px 28px 12px;
+  align-items: end;
+  flex-wrap: wrap;
+}
+
+.admin-app .report-filters .form-error {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+.admin-app .catalog-page > .empty-report-period {
+  margin: 18px 28px;
+}
+
+.admin-app .empty-report-period b,
+.admin-app .holding-cell b {
+  font-size: 14px;
+}
+
+.admin-app .holding-cell small {
+  font-size: 12px;
+}
+
 .admin-app .order-tools {
   grid-template-columns: 1.4fr 0.7fr 0.55fr;
 }

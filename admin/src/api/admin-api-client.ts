@@ -3,8 +3,10 @@ import type {
   ExchangeRateRecord,
   ManufacturerRecord,
   NotificationRecord,
+  DebtReport,
   DriverPosition,
   DriverRecord,
+  DriverReportRow,
   DriverSettlementInput,
   DriverSettlementRecord,
   InvoiceRecord,
@@ -12,7 +14,10 @@ import type {
   PaymentRecord,
   PharmacyStatement,
   ReceiptInput,
+  SalesReport,
+  SalesReportQuery,
   ProductRecord,
+  ProductReport,
   RejectInvoiceInput,
   RejectionReasonRecord,
   ProductStockInput,
@@ -238,6 +243,38 @@ export function recordDriverSettlement(input: DriverSettlementInput): Promise<Dr
   return request<DriverSettlementRecord>('/admin/driver-settlements', { method: 'POST', body: input });
 }
 
+/**
+ * Reads delivered sales for a period, grouped by the currency stored on the invoice.
+ * Calls the admin reports controller.
+ */
+export function getSalesReport(query: SalesReportQuery): Promise<SalesReport> {
+  return request<SalesReport>(`/admin/reports/sales${toQuery(query)}`);
+}
+
+/**
+ * Reads seller ranks for a period and the current warehouse quantities.
+ * Calls the admin reports controller.
+ */
+export function getProductReport(from: string, to: string): Promise<ProductReport> {
+  return request<ProductReport>(`/admin/reports/products${toQuery({ from, to })}`);
+}
+
+/**
+ * Reads current pharmacy balances and the payments recorded in a period.
+ * Calls the admin reports controller.
+ */
+export function getDebtReport(from: string, to: string): Promise<DebtReport> {
+  return request<DebtReport>(`/admin/reports/debts${toQuery({ from, to })}`);
+}
+
+/**
+ * Reads delivery counts and held money for every driver.
+ * Calls the admin reports controller.
+ */
+export function getDriverReport(): Promise<DriverReportRow[]> {
+  return request<DriverReportRow[]>('/admin/reports/drivers');
+}
+
 interface RequestOptions {
   readonly method?: string;
   readonly body?: unknown;
@@ -291,6 +328,20 @@ async function readError(response: Response): Promise<AdminApiError> {
     return new AdminApiError(response.status, 'REQUEST_FAILED', '');
   }
   return new AdminApiError(response.status, 'REQUEST_FAILED', '');
+}
+
+function toQuery(params: object): string {
+  const search = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (typeof value === 'string' && value.length > 0) {
+      search.set(key, value);
+    }
+    if (typeof value === 'number') {
+      search.set(key, String(value));
+    }
+  });
+  const query = search.toString();
+  return query.length === 0 ? '' : `?${query}`;
 }
 
 function isErrorBody(value: unknown): value is { message?: string; code?: string; statusCode?: number; validationErrorObjects?: FieldError[] } {

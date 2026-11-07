@@ -101,6 +101,9 @@ export function describeAdminError(error: unknown): string {
   if (error.code === 'COLLECTION_ALREADY_SETTLED') {
     return 'إحدى التحصيلات سُلّمت للإدارة مسبقاً.';
   }
+  if (error.code === 'REPORT_PERIOD_INVALID') {
+    return 'تاريخ البداية يجب أن يكون قبل تاريخ النهاية أو مساوياً له.';
+  }
   if (error.message.trim().length > 0 && error.statusCode < 500) {
     return error.message;
   }

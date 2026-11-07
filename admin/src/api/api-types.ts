@@ -323,6 +323,89 @@ export interface DriverSettlementRecord {
   readonly updatedAt: string;
 }
 
+export interface CurrencyTotal {
+  readonly currency: InvoiceCurrency;
+  readonly amount: string;
+}
+
+export interface SalesReportQuery {
+  readonly from: string;
+  readonly to: string;
+  readonly pharmacyId?: number;
+  readonly category?: ProductCategory;
+}
+
+export interface SalesReport {
+  readonly totals: readonly CurrencyTotal[];
+}
+
+export interface SellerTotal {
+  readonly productId: number;
+  readonly productName: string;
+  readonly currency: InvoiceCurrency;
+  readonly paidQuantity: number;
+}
+
+export interface WarehouseQuantity {
+  readonly warehouseId: number;
+  readonly warehouseName: string;
+  readonly productId: number;
+  readonly productName: string;
+  readonly quantity: number;
+  readonly reservedQuantity: number;
+  readonly availableQuantity: number;
+  readonly lowQuantityThreshold: number;
+}
+
+export interface ProductReport {
+  readonly bestSellers: readonly SellerTotal[];
+  readonly slowestSellers: readonly SellerTotal[];
+  readonly lowQuantity: readonly WarehouseQuantity[];
+  readonly unavailable: readonly WarehouseQuantity[];
+  readonly quantitiesByWarehouse: readonly WarehouseQuantity[];
+}
+
+export interface PharmacyBalance {
+  readonly pharmacyId: number;
+  readonly pharmacyName: string;
+  readonly currency: InvoiceCurrency;
+  readonly outstanding: string;
+}
+
+export interface DebtInvoice {
+  readonly invoiceId: number;
+  readonly pharmacyId: number;
+  readonly pharmacyName: string;
+  readonly currency: InvoiceCurrency;
+  readonly amount: string;
+  readonly dueDate: string;
+  readonly overdue: boolean;
+}
+
+export interface DebtReport {
+  readonly balances: readonly PharmacyBalance[];
+  readonly unpaidInvoices: readonly DebtInvoice[];
+  readonly paymentsInPeriod: readonly CurrencyTotal[];
+  readonly totalDue: readonly CurrencyTotal[];
+}
+
+export interface DriverReportHolding {
+  readonly currency: InvoiceCurrency;
+  readonly collected: string;
+  readonly handedOver: string;
+  readonly held: string;
+}
+
+export interface DriverReportRow {
+  readonly driverId: number;
+  readonly driverName: string;
+  readonly assignedCount: number;
+  readonly deliveredPaidCount: number;
+  readonly deliveredUnpaidCount: number;
+  readonly notDeliveredCount: number;
+  readonly holdings: readonly DriverReportHolding[];
+}
+
 export interface FieldError {
   readonly field: string;
   readonly messages: readonly string[];

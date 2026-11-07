@@ -16,6 +16,11 @@ import { DriverSettlementPage } from '@/accounts/driver-settlement-page';
 import { PharmacyStatementPage } from '@/accounts/pharmacy-statement-page';
 import { OrderDetailPage } from '@/orders/order-detail-page';
 import { OrderListPage } from '@/orders/order-list-page';
+import { DebtReportPage } from '@/reports/debt-report-page';
+import { DriverReportPage } from '@/reports/driver-report-page';
+import { ProductReportPage } from '@/reports/product-report-page';
+import { ReportsPage } from '@/reports/reports-page';
+import { SalesReportPage } from '@/reports/sales-report-page';
 import { PlaceholderPage } from '@/shell/placeholder-page';
 
 /**
@@ -43,7 +48,11 @@ export function AppRoutes(): ReactElement {
         <Route path="accounts" element={<AccountsPage />} />
         <Route path="accounts/pharmacies/:pharmacyId" element={<PharmacyStatementPage />} />
         <Route path="accounts/drivers/:driverId" element={<DriverSettlementPage />} />
-        <Route path="reports" element={<PlaceholderPage crumb="التقارير" title="التقارير" description="تقارير المبيعات والمخزون والديون والسائقين تُبنى لاحقاً." />} />
+        <Route path="reports" element={<ReportsPage />} />
+        <Route path="reports/sales" element={<SalesReportPage />} />
+        <Route path="reports/products" element={<ProductReportPage />} />
+        <Route path="reports/debts" element={<DebtReportPage />} />
+        <Route path="reports/drivers" element={<DriverReportPage />} />
         <Route path="notifications" element={<PlaceholderPage crumb="الإشعارات" title="الإشعارات" description="صندوق إشعارات الإدارة يُبنى مع التقارير." />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
