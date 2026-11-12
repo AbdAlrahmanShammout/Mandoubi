@@ -7,7 +7,8 @@ import { PrismaProviderService } from '@/providers/database/prisma/prisma-provid
 import { CreateProductRepoInput, UpdateProductRepoInput } from '@/modules/product/defs/product-repository.defs';
 import { ProductEntity } from '@/modules/product/entity/product.entity';
 import { ProductMapper } from '@/modules/product/mapper/product.mapper';
-import { ProductRepository, ProductSearchInput } from '@/modules/product/repository/product.repository';
+import { PharmacyCatalogSearchInput, ProductRepository, ProductSearchInput } from '@/modules/product/repository/product.repository';
+import { ProductStatus } from '@/modules/product/enum/product-status.enum';
 import { calculateSypPrice } from '@/modules/product/helpers/syp-price.helper';
 import { productDetailsInclude } from '@/modules/product/types/product-details.include';
 
@@ -92,6 +93,29 @@ export class ProductPrismaRepository extends ProductRepository {
     ]);
     return { items: results.map((result) => ProductMapper.toEntity(result)), total };
   }
+  /** Searches name and barcode, keeps active products, and sorts by name before paging. */
+  async searchCatalog(input: PharmacyCatalogSearchInput): Promise<{ readonly items: readonly ProductEntity[]; readonly total: number }> {
+    const where = pharmacyCatalogWhere(input);
+    const [results, total] = await this.prisma.$transaction([
+      this.prisma.product.findMany({
+        where,
+        include: productDetailsInclude,
+        orderBy: [{ name: 'asc' }, { id: 'asc' }],
+        take: input.limit,
+        skip: input.offset,
+      }),
+      this.prisma.product.count({ where }),
+    ]);
+    return { items: results.map((result) => ProductMapper.toEntity(result)), total };
+  }
+  /** Loads the requested products that have not been removed. */
+  async listByIds(ids: readonly number[]): Promise<ProductEntity[]> {
+    const results = await this.prisma.product.findMany({
+      where: { id: { in: [...ids] }, deletedAt: null },
+      include: productDetailsInclude,
+    });
+    return results.map((result) => ProductMapper.toEntity(result));
+  }
   /** Updates product fields when the product is still present. */
   async update(input: UpdateProductRepoInput, context?: TransactionContext): Promise<ProductEntity | null> {
     const client = resolvePrismaClient(this.prisma, context);
@@ -170,6 +194,22 @@ function conflictForProduct(error: unknown): ConflictException {
     message: 'A product with this barcode already exists',
     code: 'BARCODE_IN_USE',
   });
+}
+
+function pharmacyCatalogWhere(input: PharmacyCatalogSearchInput): Prisma.ProductWhereInput {
+  return {
+    deletedAt: null,
+    status: ProductStatus.ACTIVE,
+    ...(input.category ? { category: input.category } : {}),
+    ...(input.search
+      ? {
+          OR: [
+            { name: { contains: input.search, mode: 'insensitive' } },
+            { barcode: { contains: input.search, mode: 'insensitive' } },
+          ],
+        }
+      : {}),
+  };
 }
 
 function productSearchWhere(input: ProductSearchInput): Prisma.ProductWhereInput {

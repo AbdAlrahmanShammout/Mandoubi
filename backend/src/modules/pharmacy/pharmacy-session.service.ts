@@ -32,4 +32,10 @@ export class PharmacySessionService {
       throw new UnauthenticatedException();
     }
   }
+  /**
+   * Revokes the pharmacy's active session so the current access token is rejected.
+   */
+  async closeSession(pharmacyId: number): Promise<void> {
+    await this.pharmacySessionRepository.revokeActiveByPharmacyId(pharmacyId);
+  }
 }

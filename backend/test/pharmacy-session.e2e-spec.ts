@@ -65,6 +65,23 @@ describe('Pharmacy session', () => {
     });
     expect(adminRoute.status).toBe(403);
   });
+  it('rejects the same access token after the pharmacy signs out', async () => {
+    const token = await signIn(baseUrl, pharmacyMobile);
+    const signedOut = await fetch(`${baseUrl}/pharmacy/auth/sign-out`, {
+      method: 'POST',
+      headers: { authorization: `Bearer ${token}` },
+    });
+    expect(signedOut.status).toBe(204);
+    const profile = await fetch(`${baseUrl}/pharmacy/auth/me`, {
+      headers: { authorization: `Bearer ${token}` },
+    });
+    expect(profile.status).toBe(401);
+    const again = await signIn(baseUrl, pharmacyMobile);
+    const restored = await fetch(`${baseUrl}/pharmacy/auth/me`, {
+      headers: { authorization: `Bearer ${again}` },
+    });
+    expect(restored.status).toBe(200);
+  });
 });
 
 async function signIn(baseUrl: string, mobileNumber: string): Promise<string> {

@@ -3,16 +3,19 @@ import { TransactionContext } from '@/common/base/transaction-context';
 import { TransactionRunner } from '@/common/base/transaction-runner';
 import { InvalidStateException } from '@/common/exceptions/invalid-state.exception';
 import { ResourceNotFoundException } from '@/common/exceptions/resource-not-found.exception';
+import { Page, normalizePage } from '@/common/paging/page';
 import { CreateInvoiceRepoInput } from '@/modules/invoice/defs/invoice-repository.defs';
 import { InvoiceEntity } from '@/modules/invoice/entity/invoice.entity';
 import { InvoiceItemEntity } from '@/modules/invoice/entity/invoice-item.entity';
 import { InvoiceStatus } from '@/modules/invoice/enum/invoice-status.enum';
+import { rankRequestedProducts } from '@/modules/invoice/helpers/rank-requested-products.helper';
 import { InvoiceRepository } from '@/modules/invoice/repository/invoice.repository';
 import { AuditAction } from '@/modules/audit/enum/audit-action.enum';
 import { AuditService } from '@/modules/audit/audit.service';
 import { NotificationAudience } from '@/modules/notification/enum/notification-audience.enum';
 import { NotificationKind } from '@/modules/notification/enum/notification-kind.enum';
 import { NotificationService } from '@/modules/notification/notification.service';
+import { ProductEntity } from '@/modules/product/entity/product.entity';
 import { ProductService } from '@/modules/product/product.service';
 import { RejectionReasonService } from '@/modules/rejection-reason/rejection-reason.service';
 
@@ -124,6 +127,26 @@ export class InvoiceService {
     return pharmacyId;
   }
   /**
+   * Loads an invoice only when it belongs to the signed-in pharmacy.
+   */
+  async getInvoiceForPharmacy(invoiceId: number, pharmacyId: number): Promise<InvoiceEntity> {
+    const ownerId = await this.findPharmacyId(invoiceId);
+    if (ownerId !== pharmacyId) {
+      throw new ResourceNotFoundException('Invoice', invoiceId);
+    }
+    return this.getInvoiceById(invoiceId);
+  }
+  /**
+   * Ranks this pharmacy's requested products by paid quantity.
+   */
+  async listMostRequested(pharmacyId: number, limit?: number, offset?: number): Promise<Page<RankedCatalogProduct>> {
+    const page = normalizePage(limit, offset);
+    const ranked = rankRequestedProducts(await this.invoiceRepository.listRequestedTotals(pharmacyId));
+    const products = await this.productService.listProductsByIds(ranked.map((row) => row.productId));
+    const present = keepExistingProducts(ranked, products);
+    return { items: present.slice(page.offset, page.offset + page.limit), total: present.length, limit: page.limit, offset: page.offset };
+  }
+  /**
    * Moves a missed or unpaid delivery to returned and returns the invoice.
    */
   async markReturned(id: number, context: TransactionContext): Promise<InvoiceEntity> {
@@ -192,6 +215,19 @@ function requireItems(invoice: InvoiceEntity): InvoiceItemEntity[] {
     throw new InvalidStateException({ message: 'The invoice lines were not loaded', code: 'INVOICE_LINES_MISSING' });
   }
   return invoice.items;
+}
+
+interface RankedCatalogProduct {
+  readonly product: ProductEntity;
+  readonly requestedQuantity: number;
+}
+
+function keepExistingProducts(ranked: readonly { readonly productId: number; readonly requestedQuantity: number }[], products: readonly ProductEntity[]): RankedCatalogProduct[] {
+  const productsById = new Map(products.map((product) => [product.id, product]));
+  return ranked.flatMap((row) => {
+    const product = productsById.get(row.productId);
+    return product ? [{ product, requestedQuantity: row.requestedQuantity }] : [];
+  });
 }
 
 function readCustomReason(customReason?: string): string | null {

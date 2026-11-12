@@ -13,6 +13,7 @@ import { JwtConfigService } from '@/config/jwt/jwt-config.service';
 import { PharmacySessionGuard } from '@/modules/pharmacy/guards/pharmacy-session.guard';
 import { PharmacyResponse } from '@/modules/pharmacy/dto/response/model/pharmacy.response';
 import { PharmacyService } from '@/modules/pharmacy/pharmacy.service';
+import { PharmacySessionService } from '@/modules/pharmacy/pharmacy-session.service';
 import { AccountRole } from '@/modules/user/enum/account-role.enum';
 import { JwtAuthGuard } from '@/modules/user/guards/jwt-auth.guard';
 import { UserService } from '@/modules/user/user.service';
@@ -30,6 +31,7 @@ export class PharmacyAuthController {
     private readonly authService: AuthService,
     private readonly userService: UserService,
     private readonly pharmacyService: PharmacyService,
+    private readonly pharmacySessionService: PharmacySessionService,
     private readonly jwtConfig: JwtConfigService,
   ) {}
   /**
@@ -56,5 +58,18 @@ export class PharmacyAuthController {
     }
     const pharmacy = await this.pharmacyService.getPharmacyById(user.pharmacyId);
     return new PharmacyResponse(pharmacy);
+  }
+  /**
+   * Revokes the active server session. The same access token is rejected afterward.
+   */
+  @Post('sign-out')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Sign out the pharmacy and revoke its session' })
+  async signOut(@LoggedInUser() currentUser: Principal): Promise<void> {
+    const user = await this.userService.getUserById(currentUser.id);
+    if (user.pharmacyId === null) {
+      throw new UnauthenticatedException();
+    }
+    await this.pharmacySessionService.closeSession(user.pharmacyId);
   }
 }

@@ -18,6 +18,16 @@ export interface ProductSearchInput {
 }
 
 /**
+ * Pharmacy catalog search. Disabled products stay out of the page.
+ */
+export interface PharmacyCatalogSearchInput {
+  readonly search?: string;
+  readonly category?: ProductCategory;
+  readonly limit: number;
+  readonly offset: number;
+}
+
+/**
  * Persistence contract for products.
  */
 export abstract class ProductRepository {
@@ -29,6 +39,10 @@ export abstract class ProductRepository {
   abstract list(): Promise<ProductEntity[]>;
   /** Returns one page of products matching the search and filters, plus the full match count. */
   abstract search(input: ProductSearchInput): Promise<{ readonly items: readonly ProductEntity[]; readonly total: number }>;
+  /** Returns one page of active products for the pharmacy catalog, sorted by name. */
+  abstract searchCatalog(input: PharmacyCatalogSearchInput): Promise<{ readonly items: readonly ProductEntity[]; readonly total: number }>;
+  /** Loads products that have not been removed. Missing ids are omitted. */
+  abstract listByIds(ids: readonly number[]): Promise<ProductEntity[]>;
   /** Updates product fields and returns the product, or null when it is missing. */
   abstract update(input: UpdateProductRepoInput, context?: TransactionContext): Promise<ProductEntity | null>;
   /** Recalculates Syrian-pound prices for products whose switch is on. */

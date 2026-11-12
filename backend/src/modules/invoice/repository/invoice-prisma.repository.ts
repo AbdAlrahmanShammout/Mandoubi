@@ -8,6 +8,7 @@ import { InvoiceEntity } from '@/modules/invoice/entity/invoice.entity';
 import { InvoiceStatus } from '@/modules/invoice/enum/invoice-status.enum';
 import { InvoiceMapper } from '@/modules/invoice/mapper/invoice.mapper';
 import { InvoiceRepository, RejectInvoiceRepoInput } from '@/modules/invoice/repository/invoice.repository';
+import { RequestedProductTotal } from '@/modules/invoice/helpers/rank-requested-products.helper';
 import { invoiceDetailsInclude } from '@/modules/invoice/types/invoice-details.include';
 
 /**
@@ -42,6 +43,15 @@ export class InvoicePrismaRepository extends InvoiceRepository {
     const client = resolvePrismaClient(this.prisma, context);
     const result = await client.invoice.findUnique({ where: { id }, select: { order: { select: { pharmacyId: true } } } });
     return result?.order.pharmacyId ?? null;
+  }
+  /** Sums paid quantity per product across every invoice this pharmacy submitted. */
+  async listRequestedTotals(pharmacyId: number): Promise<RequestedProductTotal[]> {
+    const rows = await this.prisma.invoiceItem.groupBy({
+      by: ['productId'],
+      where: { invoice: { order: { pharmacyId } } },
+      _sum: { paidQuantity: true },
+    });
+    return rows.map((row) => ({ productId: row.productId, requestedQuantity: row._sum.paidQuantity ?? 0 }));
   }
   /** Approves a pending invoice without changing stock itself. */
   async markApproved(id: number, context: TransactionContext): Promise<boolean> {

@@ -2,6 +2,7 @@ import { TransactionContext } from '@/common/base/transaction-context';
 import { CreateInvoiceRepoInput } from '@/modules/invoice/defs/invoice-repository.defs';
 import { InvoiceEntity } from '@/modules/invoice/entity/invoice.entity';
 import { InvoiceStatus } from '@/modules/invoice/enum/invoice-status.enum';
+import { RequestedProductTotal } from '@/modules/invoice/helpers/rank-requested-products.helper';
 
 /**
  * Optional note stored when an invoice is rejected.
@@ -22,6 +23,8 @@ export abstract class InvoiceRepository {
   abstract findById(id: number, context?: TransactionContext): Promise<InvoiceEntity | null>;
   /** Loads the pharmacy that owns the invoice. */
   abstract findPharmacyId(id: number, context?: TransactionContext): Promise<number | null>;
+  /** Sums paid quantity per product for one pharmacy, including rejected invoices. */
+  abstract listRequestedTotals(pharmacyId: number): Promise<RequestedProductTotal[]>;
   /** Moves a pending invoice to approved. Returns false when it is not pending. */
   abstract markApproved(id: number, context: TransactionContext): Promise<boolean>;
   /** Moves a pending invoice to rejected. Returns false when it is not pending. */

@@ -12,7 +12,7 @@ import { MONEY_PATTERN } from '@/modules/product/constants/money.constant';
 import { CreateProductRepoInput, ResolvedProductPrices, UpdateProductRepoInput } from '@/modules/product/defs/product-repository.defs';
 import { Page, normalizePage } from '@/common/paging/page';
 import { ProductEntity } from '@/modules/product/entity/product.entity';
-import { ProductSearchInput } from '@/modules/product/repository/product.repository';
+import { PharmacyCatalogSearchInput, ProductSearchInput } from '@/modules/product/repository/product.repository';
 import { ProductStockEntity } from '@/modules/product/entity/product-stock.entity';
 import { InvoiceCurrency } from '@/modules/product/enum/invoice-currency.enum';
 import { ProductAvailability } from '@/modules/product/enum/product-availability.enum';
@@ -119,6 +119,23 @@ export class ProductService {
     const page = normalizePage(input.limit, input.offset);
     const result = await this.productRepository.search({ ...input, ...page });
     return { ...result, ...page };
+  }
+  /**
+   * Searches the pharmacy catalog. Disabled products are omitted and the page is sorted by name.
+   */
+  async searchCatalog(input: Omit<PharmacyCatalogSearchInput, 'limit' | 'offset'> & { readonly limit?: number; readonly offset?: number }): Promise<Page<ProductEntity>> {
+    const page = normalizePage(input.limit, input.offset);
+    const result = await this.productRepository.searchCatalog({ search: input.search, category: input.category, ...page });
+    return { ...result, ...page };
+  }
+  /**
+   * Loads products by id. Removed products are omitted.
+   */
+  async listProductsByIds(ids: readonly number[]): Promise<ProductEntity[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+    return this.productRepository.listByIds(ids);
   }
   /**
    * Changes product data without changing warehouse quantities.
